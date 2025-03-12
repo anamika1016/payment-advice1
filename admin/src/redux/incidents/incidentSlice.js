@@ -7,10 +7,7 @@ export const fetchIncidents = createAsyncThunk(
   "incidents/fetchIncidents",
   async (_, { rejectWithValue }) => {
     try {
-      const { organization } = getUserData();
-      const response = await axios.get(
-        `/incident/?organization_id=${organization.id}`
-      );
+      const response = await axios.get(`/incident`);
       return response.data.data;
     } catch (error) {
       toast.error(error.response?.data?.message || error.message);
@@ -23,10 +20,11 @@ export const addIncident = createAsyncThunk(
   "incidents/addIncident",
   async (incidentData, { rejectWithValue }) => {
     try {
-      const { user, organization } = getUserData();
+      console.log(incidentData);
+
+      const { user } = getUserData();
       const response = await axios.post("/incident", {
         ...incidentData,
-        organization_id: organization.id,
         userId: user.id,
       });
       if (response.data.success) {

@@ -36,24 +36,11 @@ const paymentForm = ({ incident, onClose }) => {
     if (incident) {
       dispatch(updateIncident({ id: incidentData._id, incidentData }));
     } else {
-      const newIncidentData = {
-        ...incidentData,
-        timeline: [
-          {
-            message: incidentData.message || "Incident created",
-            status: incidentData.status,
-          },
-        ],
-      };
-      dispatch(addIncident(newIncidentData));
+      dispatch(addIncident(incidentData));
     }
 
     onClose();
   };
-
-  const currentStatus = incidentStatus.find(
-    (status) => status.name === incidentData.status
-  );
 
   return (
     <div className="flex flex-col gap-8">

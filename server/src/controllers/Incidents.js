@@ -4,47 +4,9 @@ import organizationModel from "../models/Organization.js";
 
 export const createIncident = async (req, res) => {
   try {
-    const { name, organization_id, ...incidentData } = req.body;
-    console.log(req.body);
-
-    if (!organization_id) {
-      return res.status(400).send({
-        success: false,
-        message: "organization_id is required",
-      });
-    }
-
-    if (!name) {
-      return res.status(400).send({
-        success: false,
-        message: "incident name or status must be specified",
-      });
-    }
-
-    if (incidentData._id) {
-      delete incidentData._id;
-    }
-
-    const incident = new incidentModel({
-      name,
-      organization_id,
-      ...incidentData,
-    });
+    const incident = new incidentModel({ ...req.body });
 
     const savedIncident = await incident.save();
-
-    const organization = await organizationModel.findByIdAndUpdate(
-      organization_id,
-      { $push: { incidents: savedIncident._id } },
-      { new: true }
-    );
-
-    if (!organization) {
-      return res.status(404).send({
-        success: false,
-        message: "Organization not found",
-      });
-    }
 
     res.status(201).send({
       success: true,
@@ -62,10 +24,7 @@ export const createIncident = async (req, res) => {
 
 export const getAllIncidents = async (req, res) => {
   try {
-    const { organization_id } = req.query;
-    const query = organization_id ? { organization_id } : {};
-
-    const incidents = await incidentModel.find(query);
+    const incidents = await incidentModel.find();
     res.status(200).send({
       success: true,
       message: "Incidents fetched successfully",

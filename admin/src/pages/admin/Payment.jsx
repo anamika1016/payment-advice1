@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import IncidentForm from "@/components/incidents/IncidentForm";
+import PaymentForm from "@/components/incidents/PaymentForm";
 import Chip from "@/components/common/Chip";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -123,30 +123,33 @@ const Payment = () => {
                 {incidents.map((incident) => (
                   <TableRow key={incident._id}>
                     <TableCell className="font-medium">
-                      {incident.name}
+                      {incident.ref_no}
                     </TableCell>
-                    <TableCell>
-                      <Chip status={incident.status} />
+                    <TableCell className="font-medium">
+                      {incident.date}
                     </TableCell>
-                    <TableCell>{formatDate(incident.createdAt)}</TableCell>
-                    <TableCell>{formatDate(incident.updatedAt)}</TableCell>
-                    <TableCell>
-                      <button
-                        className="flex items-center gap-2 text-blue-600 font-semibold hover:underline"
-                        onClick={() => openRecordDialog(incident)}
-                      >
-                        Record Update
-                      </button>
+                    <TableCell className="font-medium">
+                      {incident.recipient_name}
                     </TableCell>
-                    <TableCell>
-                      <button
-                        className="flex items-center gap-2 text-green-600 font-semibold hover:underline"
-                        onClick={() => openTimelineDialog(incident)}
-                      >
-                        <Eye size={16} />
-                        <span className="">View Incident</span>
-                      </button>
+                    <TableCell className="font-medium">
+                      {incident.recipient_address}
                     </TableCell>
+                    <TableCell className="font-medium">
+                      {incident.account_number}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {incident.ifsc_code}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {incident.amount}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {incident.utr_no}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {incident.transaction_date}
+                    </TableCell>
+
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
                         <Button
@@ -205,7 +208,7 @@ const Payment = () => {
                   {selectedIncident ? "Edit Payment" : " new Payment"}
                 </DialogTitle>
               </DialogHeader>
-              <IncidentForm incident={selectedIncident} onClose={closeDialog} />
+              <PaymentForm incident={selectedIncident} onClose={closeDialog} />
             </DialogContent>
           </Dialog>
 
