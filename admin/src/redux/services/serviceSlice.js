@@ -7,10 +7,7 @@ export const fetchServices = createAsyncThunk(
   "services/fetchServices",
   async (_, { rejectWithValue }) => {
     try {
-      const { organization } = getUserData();
-      const response = await axios.get(
-        `/service/?organization_id=${organization.id}`
-      );
+      const response = await axios.get(`/service`);
       return response.data.data;
     } catch (error) {
       toast.error(error.response?.data?.message || error.message);
@@ -23,12 +20,9 @@ export const addService = createAsyncThunk(
   "services/addService",
   async (serviceData, { rejectWithValue }) => {
     try {
-      console.log(serviceData);
-      
-      const { user, organization } = getUserData();
+      const { user } = getUserData();
       const payload = {
         userId: user.id,
-        organization_id: organization.id,
         ...serviceData,
       };
       const response = await axios.post("/service", payload);

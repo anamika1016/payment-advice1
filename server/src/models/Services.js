@@ -3,23 +3,15 @@ import mongoose from "mongoose";
 const serviceSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    description: { type: String, trim: true },
-    link: { type: String, trim: true },
-    status: {
-      type: String,
-      default: "Unknown",
-      enum: [
-        "Operational",
-        "Performance Issues",
-        "Partial Outage",
-        "Major Outage",
-        "Unknown",
-      ],
-    },
-    organization_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Organizations",
-    },
+    email: { type: String, trim: true },
+    phone: { type: String, trim: true },
+    bankName: { type: String, trim: true },
+    accountNumber: { type: String, trim: true },
+    ifscCode: { type: String, trim: true },
+    bankAddress: { type: String, trim: true },
+    state: { type: String, trim: true },
+    district: { type: String, trim: true },
+    type: { type: String, trim: true },
   },
   { timestamps: true }
 );

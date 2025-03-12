@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import StatusChips from "../common/StatusChip";
 import { incidentStatus } from "@/data";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,13 +10,10 @@ import {
 } from "@/redux/incidents/incidentSlice";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
 
-const IncidentForm = ({ incident, onClose }) => {
+const paymentForm = ({ incident, onClose }) => {
   const dispatch = useDispatch();
-  const { incidentData } = useSelector(
-    (state) => state.incidents
-  );
+  const { incidentData } = useSelector((state) => state.incidents);
 
   useEffect(() => {
     if (incident) {
@@ -62,42 +58,127 @@ const IncidentForm = ({ incident, onClose }) => {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <Label htmlFor="name" className="required-input">
-          Name
+        <Label htmlFor="ref_no" className="required-input">
+          Reference Number
         </Label>
         <Input
-          id="name"
+          id="ref_no"
           type="text"
-          value={incidentData.name}
+          value={incidentData.ref_no}
           onChange={onInputChange}
-          placeholder="Enter service name"
+          placeholder="Enter Reference Number"
           required
         />
       </div>
 
-      <div className="flex flex-col space-y-[8px]">
-        <Label htmlFor="status" className="required-input">
-          Status
+      <div>
+        <Label htmlFor="date" className="required-input">
+          Date
         </Label>
-        <div className="flex flex-wrap gap-5">
-          {incidentStatus.map((status, index) => (
-            <StatusChips
-              key={index}
-              status={status}
-              activeStatus={currentStatus}
-              onStatusSelect={handleStatusSelect}
-            />
-          ))}
-        </div>
+        <Input
+          id="date"
+          type="date"
+          value={incidentData.date}
+          onChange={onInputChange}
+          required
+        />
       </div>
 
       <div>
-        <Label htmlFor="message">Message</Label>
-        <Textarea
-          id="message"
-          placeholder="Type here"
-          value={incidentData.message}
+        <Label htmlFor="recipient_name" className="required-input">
+          Recipient Name
+        </Label>
+        <Input
+          id="recipient_name"
+          type="text"
+          value={incidentData.recipient_name}
           onChange={onInputChange}
+          placeholder="Enter Recipient Name"
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="recipient_address" className="required-input">
+          Recipient Address
+        </Label>
+        <Input
+          id="recipient_address"
+          type="text"
+          value={incidentData.recipient_address}
+          onChange={onInputChange}
+          placeholder="Enter Recipient Address"
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="account_number" className="required-input">
+          Account Number
+        </Label>
+        <Input
+          id="account_number"
+          type="text"
+          value={incidentData.account_number}
+          onChange={onInputChange}
+          placeholder="Enter Account Number"
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="ifsc_code" className="required-input">
+          IFSC Code
+        </Label>
+        <Input
+          id="ifsc_code"
+          type="text"
+          value={incidentData.ifsc_code}
+          onChange={onInputChange}
+          placeholder="Enter IFSC Code"
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="amount" className="required-input">
+          Amount
+        </Label>
+        <Input
+          id="amount"
+          type="number"
+          step="0.01"
+          value={incidentData.amount}
+          onChange={onInputChange}
+          placeholder="Enter Amount"
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="utr_no" className="required-input">
+          UTR Number
+        </Label>
+        <Input
+          id="utr_no"
+          type="text"
+          value={incidentData.utr_no}
+          onChange={onInputChange}
+          placeholder="Enter UTR Number"
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="transaction_date" className="required-input">
+          Transaction Date
+        </Label>
+        <Input
+          id="transaction_date"
+          type="date"
+          value={incidentData.transaction_date}
+          onChange={onInputChange}
+          required
         />
       </div>
 
@@ -108,4 +189,4 @@ const IncidentForm = ({ incident, onClose }) => {
   );
 };
 
-export default IncidentForm;
+export default paymentForm;

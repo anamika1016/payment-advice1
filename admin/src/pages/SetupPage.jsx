@@ -12,6 +12,13 @@ import {
 import axios from "@/api/axios";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const SetUpPage = () => {
   const [userSignedUp, setUserSignedUp] = useState(false);
@@ -22,6 +29,8 @@ const SetUpPage = () => {
       name: "",
       email: "",
       password: "",
+      role: "",
+      companyType: "",
     });
 
     const handleChange = (e) => {
@@ -35,6 +44,8 @@ const SetUpPage = () => {
         userName: userData.name,
         userEmail: userData.email,
         password: userData.password,
+        role: userData.role,
+        companyType: userData.company
       });
 
       toast.promise(promise, {
@@ -43,6 +54,7 @@ const SetUpPage = () => {
           setUserSignedUp(true);
           sessionStorage.setItem("user", JSON.stringify(response.data.user));
           sessionStorage.setItem("token", response.data.token);
+          navigate("/dashboard");
           return response.data?.message;
         },
         error: (error) => {
@@ -119,6 +131,46 @@ const SetUpPage = () => {
                           onChange={handleChange}
                           placeholder="Create a password"
                         />
+                      </div>
+                      <div>
+                        <Label htmlFor="role">Role</Label>
+                        <Select
+                          value={userData.role}
+                          onValueChange={(value) =>
+                            setUserData((prevData) => ({
+                              ...prevData,
+                              role: value,
+                            }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="user">User</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="companyType">Company Type</Label>
+                        <Select
+                          value={userData.companyType}
+                          onValueChange={(value) =>
+                            setUserData((prevData) => ({
+                              ...prevData,
+                              companyType: value,
+                            }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a company type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ASA">ASA</SelectItem>
+                            <SelectItem value="PAPL">PAPL</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <Button type="submit" className="w-full">

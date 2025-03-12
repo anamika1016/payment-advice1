@@ -78,10 +78,16 @@ const Registeration = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Service Name</TableHead>
-                  <TableHead>Service URL</TableHead>
-                  <TableHead>Current Status</TableHead>
-                  <TableHead>Last Updated</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Bank Name</TableHead>
+                  <TableHead>Account Number</TableHead>
+                  <TableHead>IFSC Code</TableHead>
+                  <TableHead>Bank Address</TableHead>
+                  <TableHead>State</TableHead>
+                  <TableHead>District</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -97,31 +103,34 @@ const Registeration = () => {
                       <TableCell className="font-medium">
                         {service.name}
                       </TableCell>
-                      <TableCell>
-                        {service.link ? (
-                          <div className="flex items-center">
-                            <a
-                              href={service.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center text-blue-600 hover:text-blue-800 transition-colors group"
-                            >
-                              <span className="max-w-[200px] truncate mr-2">
-                                view
-                              </span>
-                              <FaExternalLinkAlt className="w-3 h-3 opacity-70 group-hover:opacity-100 transition-opacity" />
-                            </a>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400 italic">
-                            No link provided
-                          </span>
-                        )}
+                      <TableCell className="font-medium">
+                        {service.email}
                       </TableCell>
-                      <TableCell>
-                        <Chip status={service.status} />
+                      <TableCell className="font-medium">
+                        {service.phone}
                       </TableCell>
-                      <TableCell>{formatDate(service.updatedAt)}</TableCell>
+                      <TableCell className="font-medium">
+                        {service.bankName}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {service.accountNumber}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {service.ifscCode}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {service.bankAddress}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {service.state}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {service.district}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {service.type}
+                      </TableCell>
+
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
                           <Button
@@ -154,7 +163,10 @@ const Registeration = () => {
                   {selectedService ? "Edit Registeration" : "Add Registeration"}
                 </DialogTitle>
               </DialogHeader>
-              <RegisterationForm service={selectedService} onClose={closeDialog} />
+              <RegisterationForm
+                service={selectedService}
+                onClose={closeDialog}
+              />
             </DialogContent>
           </Dialog>
 

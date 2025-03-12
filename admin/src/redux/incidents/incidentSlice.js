@@ -104,11 +104,15 @@ const initialState = {
   incidents: [],
   isLoading: false,
   incidentData: {
-    name: "",
-    status: "",
-    message: "",
-    occurredAt: "",
-    timeline: [],
+    ref_no: "",
+    date: "",
+    recipient_name: "",
+    recipient_address: "",
+    account_number: "",
+    ifsc_code: "",
+    amount: "",
+    utr_no: "",
+    transaction_date: "",
   },
   error: null,
 };
@@ -121,14 +125,7 @@ const incidentSlice = createSlice({
       state.incidentData = { ...state.incidentData, ...action.payload };
     },
     resetIncident: (state) => {
-      state.incidentData = {
-        ...state.incidentData,
-        name: "",
-        status: "",
-        message: "",
-        occurredAt: "",
-        timeline: [],
-      };
+      state.incidentData = initialState.incidentData;
     },
   },
   extraReducers: (builder) => {

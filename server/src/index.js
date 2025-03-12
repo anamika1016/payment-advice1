@@ -11,8 +11,6 @@ import organizationRoutes from "./routes/Organization.js";
 import authRoutes from "./routes/Auth.js";
 import { Server } from "socket.io";
 import http from "http";
-import Service from "./models/Services.js";
-import Incident from "./models/Incidents.js";
 
 // configure env
 dotenv.config();
@@ -30,47 +28,6 @@ const io = new Server(server, {
     origin: [process.env.HOST_URL, process.env.CLIENT_LOCALHOST_URL],
     methods: ["GET", "POST"],
   },
-});
-
-// socket connection handler
-io.on("connection", (socket) => {
-  console.log("New Client connected");
-
-  const serviceChangeStream = Service.watch();
-  serviceChangeStream.on("change", async (change) => {
-    try {
-      if (change.operationType === "insert") {
-        socket.emit("serviceAdded", change.fullDocument);
-      } else if (change.operationType === "update") {
-        const updatedService = await Service.findById(change.documentKey._id);
-        socket.emit("serviceUpdated", updatedService);
-      } else if (change.operationType === "delete") {
-        socket.emit("serviceDeleted", change.documentKey._id);
-      }
-    } catch (error) {
-      console.error("Error in service change stream:", error);
-    }
-  });
-
-  const incidentChangeStream = Incident.watch();
-  incidentChangeStream.on("change", async (change) => {
-    try {
-      if (change.operationType === "insert") {
-        socket.emit("incidentAdded", change.fullDocument);
-      } else if (change.operationType === "update") {
-        const updatedIncident = await Incident.findById(change.documentKey._id);
-        socket.emit("incidentUpdated", updatedIncident);
-      } else if (change.operationType === "delete") {
-        socket.emit("incidentDeleted", change.documentKey._id);
-      }
-    } catch (error) {
-      console.error("Error in incident change stream:", error);
-    }
-  });
-
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
-  });
 });
 
 // middlewares

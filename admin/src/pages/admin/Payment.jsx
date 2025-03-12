@@ -94,12 +94,12 @@ const Payment = () => {
           className="text-xl text-[#0E3B65] mb-4 uppercase"
           style={{ fontFamily: "Mukta" }}
         >
-          Incidents
+          Payments
         </h1>
         <div className="flex flex-col items-center gap-10 w-[100%]">
           <div className="flex justify-end w-[100%]">
             <Button onClick={() => openIncidentDialog(null)}>
-              Report new Incident
+              new Payment
             </Button>
           </div>
 
@@ -107,12 +107,15 @@ const Payment = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Incident Name</TableHead>
-                  <TableHead>Current Status</TableHead>
-                  <TableHead>Created At</TableHead>
-                  <TableHead>Last Updated</TableHead>
-                  <TableHead>Record</TableHead>
-                  <TableHead>View Incident</TableHead>
+                  <TableHead>Reference Number</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Recipient Name</TableHead>
+                  <TableHead>Recipient Address</TableHead>
+                  <TableHead>Account Number</TableHead>
+                  <TableHead>IFSC Code</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>UTR Number</TableHead>
+                  <TableHead>Transaction Date</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -199,7 +202,7 @@ const Payment = () => {
             <DialogContent className="w-[90vw] sm:w-[600px] h-auto max-h-[90vh] p-6 rounded-lg overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
-                  {selectedIncident ? "Edit Incident" : "Report new Incident"}
+                  {selectedIncident ? "Edit Payment" : " new Payment"}
                 </DialogTitle>
               </DialogHeader>
               <IncidentForm incident={selectedIncident} onClose={closeDialog} />

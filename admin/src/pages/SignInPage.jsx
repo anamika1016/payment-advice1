@@ -33,19 +33,8 @@ const SignInPage = () => {
     toast.promise(promise, {
       loading: "Checking user credentials...",
       success: (response) => {
-        const hasOrganization = response.data?.isMember;
-        if (hasOrganization) {
-          sessionStorage.setItem("user", JSON.stringify(response.data.user));
-          sessionStorage.setItem(
-            "organization",
-            JSON.stringify(response.data.organization)
-          );
-          sessionStorage.setItem("token", response.data.token);
-          navigate("/dashboard");
-        } else {
-          return response.data?.message;
-        }
-        return "Sign in successful!";
+        navigate("/dashboard");
+        return response.data?.message;
       },
       error: (error) => {
         return (
@@ -59,14 +48,15 @@ const SignInPage = () => {
     <div className="min-h-screen w-full flex items-center justify-center m-auto py-10">
       <div className="flex flex-col items-center justify-center max-w-7xl h-full">
         <div className="flex flex-col lg:flex-row justify-between">
-          <div className="w-full lg:w-1/2 bg-secondary/10 flex flex-col justify-center items-center p-12">
+          <div className="w-full lg:min-w-[50%] lg:w-1/2 bg-secondary/10 flex flex-col justify-center items-center p-12">
             <div className="max-w-md text-center">
               <div className="mb-8 flex justify-center">
                 <img
                   src="https://static.vecteezy.com/system/resources/previews/006/912/004/non_2x/secure-login-and-sign-up-concept-illustration-vector.jpg"
                   alt="Status Page Illustration"
-                  width={300}
+                  width={500}
                   height={300}
+                  className="object-contain"
                 />
               </div>
               <h2 className="text-3xl font-bold mb-4 text-foreground">

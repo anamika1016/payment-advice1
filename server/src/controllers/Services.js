@@ -4,49 +4,9 @@ import mongoose from "mongoose";
 
 export const createService = async (req, res) => {
   try {
-    const { name, organization_id } = req.body;
-
-    if (!organization_id) {
-      return res.status(400).send({
-        success: false,
-        message: "organization_id is required",
-      });
-    }
-
-    if (!name) {
-      return res.status(400).send({
-        success: false,
-        message: "service name or status must be specified",
-      });
-    }
-
-    if (req.body._id) {
-      delete req.body._id;
-    }
-
-    if (req.body._id) {
-      return res.status(400).send({
-        success: false,
-        message: "Custom _id is not allowed",
-      });
-    }
-
     const service = new serviceModel({ ...req.body });
 
     const savedService = await service.save();
-
-    const organization = await organizationModel.findByIdAndUpdate(
-      organization_id,
-      { $push: { services: savedService._id } },
-      { new: true }
-    );
-
-    if (!organization) {
-      return res.status(404).send({
-        success: false,
-        message: "Organization not found",
-      });
-    }
 
     res.status(201).send({
       success: true,
@@ -64,10 +24,7 @@ export const createService = async (req, res) => {
 
 export const getAllServices = async (req, res) => {
   try {
-    const { organization_id } = req.query;
-    const query = organization_id ? { organization_id } : {};
-
-    const services = await serviceModel.find(query);
+    const services = await serviceModel.find();
     res.status(200).send({
       success: true,
       message: "Services fetched successfully",
