@@ -1,5 +1,4 @@
 import serviceModel from "../models/Services.js";
-import organizationModel from "../models/Organization.js";
 import mongoose from "mongoose";
 
 export const createService = async (req, res) => {
@@ -108,12 +107,6 @@ export const deleteService = async (req, res) => {
       });
     }
 
-    const organization = await organizationModel.findOneAndUpdate(
-      { _id: service.organization_id },
-      { $pull: { services: service._id } },
-      { session, new: true }
-    );
-
     const deletedService = await serviceModel.findByIdAndDelete(req.params.id, {
       session,
     });
@@ -130,45 +123,6 @@ export const deleteService = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error deleting service",
-      error: error.message,
-    });
-  }
-};
-
-export const getServicesByOrganizationSlug = async (req, res) => {
-  try {
-    const { slug } = req.params;
-
-    const organization = await organizationModel.findOne({ slug }).populate({
-      path: "services",
-      model: "Services",
-      select: "-__v",
-    });
-
-    if (!organization) {
-      return res.status(404).send({
-        success: false,
-        message: "Organization not found",
-      });
-    }
-
-    if (!organization.services || organization.services.length === 0) {
-      return res.status(200).send({
-        success: true,
-        message: "No services found for this organization",
-        data: [],
-      });
-    }
-
-    res.status(200).send({
-      success: true,
-      message: "Services fetched successfully",
-      data: organization.services,
-    });
-  } catch (error) {
-    res.status(500).send({
-      success: false,
-      message: "Error fetching services",
       error: error.message,
     });
   }

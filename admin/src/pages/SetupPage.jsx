@@ -29,8 +29,7 @@ const SetUpPage = () => {
       name: "",
       email: "",
       password: "",
-      role: "",
-      companyType: "",
+      company: "",
     });
 
     const handleChange = (e) => {
@@ -40,13 +39,7 @@ const SetUpPage = () => {
     const handleEmailSignup = async (e) => {
       e.preventDefault();
 
-      const promise = axios.post(`/organization/user/signup`, {
-        userName: userData.name,
-        userEmail: userData.email,
-        password: userData.password,
-        role: userData.role,
-        companyType: userData.company
-      });
+      const promise = axios.post(`/user/signup`, userData);
 
       toast.promise(promise, {
         loading: "please wait...",
@@ -132,34 +125,15 @@ const SetUpPage = () => {
                           placeholder="Create a password"
                         />
                       </div>
+
                       <div>
-                        <Label htmlFor="role">Role</Label>
+                        <Label htmlFor="company">Company</Label>
                         <Select
-                          value={userData.role}
+                          value={userData.company}
                           onValueChange={(value) =>
                             setUserData((prevData) => ({
                               ...prevData,
-                              role: value,
-                            }))
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="user">User</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="companyType">Company Type</Label>
-                        <Select
-                          value={userData.companyType}
-                          onValueChange={(value) =>
-                            setUserData((prevData) => ({
-                              ...prevData,
-                              companyType: value,
+                              company: value,
                             }))
                           }
                         >
@@ -167,8 +141,8 @@ const SetUpPage = () => {
                             <SelectValue placeholder="Select a company type" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="ASA">ASA</SelectItem>
-                            <SelectItem value="PAPL">PAPL</SelectItem>
+                            <SelectItem value="asa">ASA</SelectItem>
+                            <SelectItem value="papl">PAPL</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

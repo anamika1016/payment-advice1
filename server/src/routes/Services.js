@@ -5,7 +5,6 @@ import {
   getServiceById,
   updateService,
   deleteService,
-  getServicesByOrganizationSlug,
 } from "../controllers/Services.js";
 import {
   authenticateToken,
@@ -19,6 +18,5 @@ router.get("/", getAllServices);
 router.get("/:id", authenticateToken, authorizeUser, getServiceById);
 router.put("/:id", authenticateToken, authorizeUser, updateService);
 router.delete("/:id", authenticateToken, authorizeUser, deleteService);
-router.get("/:slug/service", getServicesByOrganizationSlug);
 
 export default router;

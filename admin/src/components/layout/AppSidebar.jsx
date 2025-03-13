@@ -14,9 +14,7 @@ import {
   SidebarMenu,
 } from "@/components/ui/sidebar";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useClerk, useUser } from "@clerk/clerk-react";
 import { Button } from "../ui/button";
-import { logout } from "@/api/auth";
 import { toast } from "sonner";
 
 const items = [
@@ -53,17 +51,9 @@ export function AppSidebar() {
   );
   const location = useLocation();
   const navigate = useNavigate();
-  const { isSignedIn } = useUser();
-  const { signOut } = useClerk();
 
   const handleLogout = async () => {
     try {
-      await logout();
-
-      if (isSignedIn) {
-        await signOut();
-      }
-
       sessionStorage.clear();
 
       navigate("/");

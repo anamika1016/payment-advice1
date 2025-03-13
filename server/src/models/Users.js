@@ -1,10 +1,14 @@
 import mongoose from "mongoose";
-import { UserRoles } from "../data/Enums.js";
+
+const Companies = {
+  PAPL: "papl",
+  ASA: "asa",
+};
 
 const userSchema = new mongoose.Schema(
   {
-    userName: { type: String, required: true, trim: true },
-    userEmail: {
+    name: { type: String, required: true, trim: true },
+    email: {
       type: String,
       required: true,
       unique: true,
@@ -13,17 +17,16 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      // required: true,
+      required: true,
     },
     role: {
-      type: String,
-      enum: Object.values(UserRoles),
-      default: UserRoles.MEMBER,
+      type: Number,
+      default: 0,
     },
-    organization_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Organizations",
-      // required: true,
+    company: {
+      type: String,
+      enum: Object.values(Companies),
+      required: true,
     },
   },
   { timestamps: true }

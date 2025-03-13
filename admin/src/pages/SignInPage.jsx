@@ -25,14 +25,13 @@ const SignInPage = () => {
   };
 
   const handleSignIn = async () => {
-    const promise = axios.post(`/organization/user/login`, {
-      userEmail: loginData.email,
-      password: loginData.password,
-    });
+    const promise = axios.post(`/user/login`, loginData);
 
     toast.promise(promise, {
       loading: "Checking user credentials...",
       success: (response) => {
+        sessionStorage.setItem("user", JSON.stringify(response.data.user));
+        sessionStorage.setItem("token", response.data.token);
         navigate("/dashboard");
         return response.data?.message;
       },
