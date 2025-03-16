@@ -6,17 +6,14 @@ import {
   updateIncident,
   deleteIncident,
 } from "../controllers/Incidents.js";
-import {
-  authenticateToken,
-  authorizeUser,
-} from "../middlewares/authMiddleware.js";
+import { authenticateToken, isAdmin } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/", authenticateToken, authorizeUser, createIncident);
+router.post("/", authenticateToken, isAdmin, createIncident);
 router.get("/", getAllIncidents);
-router.get("/:id", authenticateToken, authorizeUser, getIncidentById);
-router.put("/:id", authenticateToken, authorizeUser, updateIncident);
-router.delete("/:id", authenticateToken, authorizeUser, deleteIncident);
+router.get("/:id", authenticateToken, isAdmin, getIncidentById);
+router.put("/:id", authenticateToken, isAdmin, updateIncident);
+router.delete("/:id", authenticateToken, isAdmin, deleteIncident);
 
 export default router;

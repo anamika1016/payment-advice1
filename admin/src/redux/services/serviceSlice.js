@@ -61,10 +61,7 @@ export const deleteService = createAsyncThunk(
   "services/deleteService",
   async (id, { rejectWithValue }) => {
     try {
-      const { user } = getUserData();
-      const response = await axios.delete(`/service/${id}`, {
-        params: { userId: user.id },
-      });
+      const response = await axios.delete(`/service/${id}`);
       if (response.data.success) {
         toast.success(response.data.message);
       }

@@ -46,9 +46,7 @@ const items = [
 ];
 
 export function AppSidebar() {
-  const organizationDetails = JSON.parse(
-    sessionStorage.getItem("organization")
-  );
+  const userDetails = JSON.parse(sessionStorage.getItem("user"));
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -73,11 +71,11 @@ export function AppSidebar() {
           <div className="flex items-center gap-2">
             <div className="bg-primary w-10 h-10 rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-2xl">
-                {organizationDetails?.companyName?.[0] || "O"}
+                {userDetails?.name?.[0] || "O"}
               </span>
             </div>
             <span className="font-semibold text-lg text-black">
-              {organizationDetails?.companyName || "Organization"}
+              {userDetails?.name || "Organization"}
             </span>
           </div>
         </div>

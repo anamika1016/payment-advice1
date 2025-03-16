@@ -1,5 +1,5 @@
 import JWT from "jsonwebtoken";
-import { UserRoles } from "../data/Enums.js";
+import userModel from "../models/Users.js";
 
 export const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -23,26 +23,9 @@ export const authenticateToken = async (req, res, next) => {
   try {
     const SECRET_KEY = process.env.JWT_SECRET_KEY;
 
-    JWT.verify(token, SECRET_KEY, (err, decoded) => {
-      if (err) {
-        return res.status(403).send({
-          success: false,
-          message: "Invalid or expired token. Please log in again.",
-          error: err.message,
-        });
-      }
-
-      const userId = req.body.userId || req.query.userId;
-      if (userId !== decoded.userId) {
-        return res.status(403).send({
-          success: false,
-          message: "Unauthorized Access",
-        });
-      }
-
-      req.user = decoded;
-      next();
-    });
+    const decode = JWT.verify(token, SECRET_KEY);
+    req.user = decode;
+    next();
   } catch (error) {
     console.error("Authentication error:", error);
     res.status(500).send({
@@ -53,34 +36,23 @@ export const authenticateToken = async (req, res, next) => {
   }
 };
 
-export const authorizeUser = async (req, res, next) => {
+export const isAdmin = async (req, res, next) => {
   try {
-    if (!req.user) {
+    const user = await userModel.findById(req.user.userId);
+    if (user.role !== 1) {
       return res.status(401).send({
         success: false,
-        message: "Authentication required",
+        message: "UnAuthorized Access",
       });
+    } else {
+      next();
     }
-
-    const allowedRoles = [UserRoles.OWNER, UserRoles.ADMIN, UserRoles.MEMBER];
-
-    if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).send({
-        success: false,
-        message:
-          "Access denied. You do not have permission to perform this action.",
-        requiredRoles: allowedRoles,
-        userRole: req.user.role,
-      });
-    }
-
-    next();
   } catch (error) {
-    console.error("Permission check error:", error);
-    res.status(500).send({
+    console.log(error);
+    res.status(401).send({
       success: false,
-      message: "Error checking permissions",
-      error: error.message,
+      message: "Error in admin middleware",
+      error,
     });
   }
 };

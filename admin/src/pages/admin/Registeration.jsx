@@ -1,6 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import React, { useEffect, useState } from "react";
-import { FaEdit, FaTrash, FaExternalLinkAlt } from "react-icons/fa";
+import { FaEdit, FaTrash, FaExternalLinkAlt, FaUpload } from "react-icons/fa";
 import {
   Table,
   TableBody,
@@ -21,9 +21,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { deleteService, fetchServices } from "@/redux/services/serviceSlice";
 import { formatDate } from "@/utils.js";
 import RegisterationForm from "@/components/services/RegisterationForm";
+import axios from "@/api/axios";
 
 const Registeration = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
+  const [file, setFile] = useState(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const { services } = useSelector((state) => state.services);
@@ -58,6 +61,40 @@ const Registeration = () => {
     closeDeleteConfirmation();
   };
 
+  const handleBulkUpload = (event) => {
+    const uploadedFile = event.target.files[0];
+    setFile(uploadedFile);
+  };
+
+  const submitBulkUpload = async () => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await axios.post("/service/bulk-upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload file");
+      }
+
+      const result = await response.json();
+      console.log("Upload successful:", result);
+
+      dispatch(fetchServices());
+
+      setIsBulkUploadOpen(false);
+      setFile(null);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    }1  
+  };
+
   return (
     <Layout>
       <div className="container mx-auto p-6">
@@ -68,9 +105,12 @@ const Registeration = () => {
           Registerations
         </h1>
         <div className="flex flex-col items-center gap-10 w-[100%]">
-          <div className="flex justify-end w-[100%]">
+          <div className="flex gap-4 justify-end w-[100%]">
             <Button onClick={() => openServiceDialog(null)}>
               Add Registerations
+            </Button>
+            <Button variant="outline" onClick={() => setIsBulkUploadOpen(true)}>
+              <FaUpload className="mr-2" /> Bulk Upload
             </Button>
           </div>
 
@@ -192,6 +232,30 @@ const Registeration = () => {
                   onClick={() => handleDeleteService(selectedService._id)}
                 >
                   Delete
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={isBulkUploadOpen} onOpenChange={setIsBulkUploadOpen}>
+            <DialogContent className="w-[400px] p-6 rounded-lg">
+              <DialogHeader>
+                <DialogTitle>Bulk Upload</DialogTitle>
+              </DialogHeader>
+              <input
+                type="file"
+                accept=".csv, .xlsx"
+                onChange={handleBulkUpload}
+                className="w-full border p-2 rounded-md"
+              />
+              <div className="flex justify-end space-x-2 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsBulkUploadOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={submitBulkUpload} disabled={!file}>
+                  Upload
                 </Button>
               </div>
             </DialogContent>

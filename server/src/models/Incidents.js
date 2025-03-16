@@ -11,6 +11,18 @@ const incidentSchema = new mongoose.Schema(
     amount: { type: Number },
     utr_no: { type: String, trim: true },
     transaction_date: { type: Date },
+    invoices: [
+      {
+        invoice_no: { type: String, trim: true },
+        invoice_date: { type: Date },
+        rfd_id: { type: String, trim: true },
+        rfd_date: { type: Date },
+        gross_amount: { type: Number },
+        tds: { type: Number },
+        other_deductions: { type: Number },
+        net_amount: { type: Number },
+      },
+    ],
   },
   { timestamps: true }
 );

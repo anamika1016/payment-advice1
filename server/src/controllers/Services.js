@@ -1,5 +1,6 @@
 import serviceModel from "../models/Services.js";
 import mongoose from "mongoose";
+import xlsx from "xlsx";
 
 export const createService = async (req, res) => {
   try {
@@ -117,12 +118,68 @@ export const deleteService = async (req, res) => {
       success: true,
       message: "Service deleted successfully",
       deletedService: deletedService,
-      updatedOrganization: organization,
     });
   } catch (error) {
     res.status(500).send({
       success: false,
       message: "Error deleting service",
+      error: error.message,
+    });
+  }
+};
+
+export const bulkUploadServices = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send({
+        success: false,
+        message: "Please upload a file",
+      });
+    }
+
+    const fileBuffer = req.file.buffer;
+    const fileType = req.file.mimetype.includes("csv") ? "csv" : "xlsx";
+    let jsonData;
+    if (fileType === "csv") {
+      const workbook = xlsx.read(fileBuffer, { type: "buffer" });
+      const sheetName = workbook.SheetNames[0];
+      jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+    } else {
+      const workbook = xlsx.read(fileBuffer, { type: "buffer" });
+      const sheetName = workbook.SheetNames[0];
+      jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+    }
+
+    if (jsonData.length === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "Uploaded file is empty or has no valid data",
+      });
+    }
+
+    for (let i = 0; i < jsonData.length; i++) {
+      const item = jsonData[i];
+      if (!item.name || !item.email || !item.phone) {
+        return res.status(400).send({
+          success: false,
+          message: `Row ${
+            i + 1
+          } is missing required fields (name, email, or phone)`,
+        });
+      }
+    }
+    const insertedData = await serviceModel.insertMany(jsonData);
+
+    res.status(201).send({
+      success: true,
+      message: `${insertedData.length} services uploaded successfully`,
+      data: insertedData,
+    });
+  } catch (error) {
+    console.error("Error in bulk upload:", error);
+    res.status(500).send({
+      success: false,
+      message: "Error processing file",
       error: error.message,
     });
   }
