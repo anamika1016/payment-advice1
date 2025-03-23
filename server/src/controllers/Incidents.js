@@ -1,11 +1,43 @@
 import mongoose from "mongoose";
 import incidentModel from "../models/Incidents.js";
+import { sendEmail } from "../utils/mailer.js";
+import util from "util";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
 export const createIncident = async (req, res) => {
   try {
     const incident = new incidentModel({ ...req.body });
 
     const savedIncident = await incident.save();
+
+    try {
+      const readFile = util.promisify(fs.readFile);
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
+      const templatePath = join(
+        __dirname,
+        "../templates/paymentAdvicePdf.html"
+      );
+
+      if (!fs.existsSync(templatePath)) {
+        throw new Error(`Template file not found at ${templatePath}`);
+      }
+
+      const template = await readFile(templatePath, "utf-8");
+
+      const userName = req.body.userName || "User"; // Ensure a fallback
+      const replacedTemplate = template.replace("${userName}", userName);
+
+      await sendEmail(
+        process.env.ADMIN_EMAIL,
+        "PAYMENT ADVICE!",
+        replacedTemplate
+      );
+    } catch (error) {
+      console.error("Email error:", error);
+    }
 
     res.status(201).send({
       success: true,

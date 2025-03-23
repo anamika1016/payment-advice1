@@ -26,6 +26,7 @@ const paymentForm = ({ incident, onClose }) => {
           ref_no: "",
           date: null,
           recipient_name: "",
+          recipient_email: "",
           recipient_address: "",
           account_number: "",
           ifsc_code: "",
@@ -135,6 +136,19 @@ const paymentForm = ({ incident, onClose }) => {
           value={incidentData.recipient_name}
           onChange={onInputChange}
           placeholder="Enter Recipient Name"
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="recipient_name" className="required-input">
+          Recipient Email
+        </Label>
+        <Input
+          id="recipient_email"
+          type="text"
+          value={incidentData.recipient_email}
+          onChange={onInputChange}
+          placeholder="Enter Recipient email"
           required
         />
       </div>

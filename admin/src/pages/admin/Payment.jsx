@@ -110,6 +110,7 @@ const Payment = () => {
                   <TableHead>Reference Number</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Recipient Name</TableHead>
+                  <TableHead>Recipient Email</TableHead>
                   <TableHead>Recipient Address</TableHead>
                   <TableHead>Account Number</TableHead>
                   <TableHead>IFSC Code</TableHead>
@@ -130,6 +131,9 @@ const Payment = () => {
                     </TableCell>
                     <TableCell className="font-medium">
                       {incident.recipient_name}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {incident.recipient_email}
                     </TableCell>
                     <TableCell className="font-medium">
                       {incident.recipient_address}

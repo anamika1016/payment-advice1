@@ -5,6 +5,7 @@ const incidentSchema = new mongoose.Schema(
     ref_no: { type: String, trim: true },
     date: { type: Date },
     recipient_name: { type: String, trim: true },
+    recipient_email: { type: String, trim: true },
     recipient_address: { type: String, trim: true },
     account_number: { type: String, trim: true },
     ifsc_code: { type: String, trim: true },
