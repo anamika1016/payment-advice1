@@ -5,6 +5,7 @@ import util from "util";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { pdfGenerate } from "../utils/pdfGenerator.js";
 
 export const createIncident = async (req, res) => {
   try {
@@ -16,24 +17,32 @@ export const createIncident = async (req, res) => {
       const readFile = util.promisify(fs.readFile);
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = dirname(__filename);
-      const templatePath = join(
+      const templatePath = join(__dirname, "../pdfs/invoice.html");
+      const emailTemplatePath = join(
         __dirname,
-        "../templates/paymentAdvicePdf.html"
+        "../templates/paymentInvoicePdf.html"
       );
+      const emailTemplate = await readFile(emailTemplatePath, "utf-8");
 
       if (!fs.existsSync(templatePath)) {
         throw new Error(`Template file not found at ${templatePath}`);
       }
 
-      const template = await readFile(templatePath, "utf-8");
+      let template = await readFile(templatePath, "utf-8");
 
-      const userName = req.body.userName || "User"; // Ensure a fallback
-      const replacedTemplate = template.replace("${userName}", userName);
+      let tableRows = "";
+      for (const [key, value] of Object.entries(req.body)) {
+        tableRows += `<tr><td>${key}</td><td>${value}</td></tr>`;
+      }
+      template = template.replace("${tableRows}", tableRows);
+
+      const pdfBuffer = await pdfGenerate(template);
 
       await sendEmail(
         process.env.ADMIN_EMAIL,
-        "PAYMENT ADVICE!",
-        replacedTemplate
+        "Incident Report",
+        emailTemplate,
+        pdfBuffer
       );
     } catch (error) {
       console.error("Email error:", error);
