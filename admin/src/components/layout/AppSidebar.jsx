@@ -114,7 +114,7 @@ export function AppSidebar() {
         </Button>
       </div>
       <div className="absolute bottom-0 w-full p-4 text-center text-xs border-t border-gray-700">
-        <span>&copy; {new Date().getFullYear()} Organization</span>
+        <span>&copy; {new Date().getFullYear()} Payment Invoice</span>
       </div>
     </Sidebar>
   );

@@ -2,117 +2,121 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Advice</title>
+    <title>PAYMENT ADVICE</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
-            padding: 20px;
-            border: 2px solid #000;
+            font-size: 12px;
         }
         .header {
             text-align: center;
-        }
-        .header img {
-            max-width: 150px;
+            margin-bottom: 20px;
         }
         .title {
-            text-align: center;
-            font-size: 20px;
             font-weight: bold;
-            margin-top: 10px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-decoration: underline;
         }
-        .info {
-            margin: 20px 0;
+        .ref-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .addressee {
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 20px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            text-align: left;
         }
         table, th, td {
             border: 1px solid black;
+            padding: 8px;
         }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        .total {
-            font-weight: bold;
-        }
-        .footer {
+        .company-details {
             margin-top: 20px;
             text-align: center;
-            font-size: 12px;
+            font-size: 10px;
+            line-height: 1.5;
+        }
+        .note {
+            text-align: center;
+            font-style: italic;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
+    <div class="header">
+        <img src="img/logo.jpg" alt="Company Logo">
+    </div>
 
     <div class="header">
-        <img src="logo.png" alt="Company Logo">
+        <div class="title">PAYMENT ADVICE</div>
+        <div class="ref-details">
+            <span><b>Ref No.</b> _______________________</span>
+            <span><b>Date:</b> _______________________</span>
+        </div>
     </div>
 
-    <div class="title">PAYMENT ADVICE</div>
-
-    <div class="info">
-        <p><strong>Ref No:</strong> 10</p>
-        <p><strong>Date:</strong> 2025-03-09</p>
-        <p><strong>To:</strong> Khawshish</p>
-        <p><strong>Address:</strong> SS</p>
+    <div class="addressee">
+        <p><b>To,</b><br>________________________</p>
     </div>
 
-    <p>Dear Sir/Madam,</p>
-    <p>We have initiated a credit of Rs. <strong>66</strong> to your Account No. <strong>SS</strong> with IFSC Code <strong>11</strong> via NEFT/RTGS/IMPS wide UTR No. <strong>77</strong> dated <strong>2025-03-06</strong> as per details given below.</p>
+    <div class="content">
+        <p>Dear Sir/Madam,</p>
+        <p>We have initiated a credit of Rs. <b>__________________</b> to your Account No. <b>__________________</b> with IFSC Code
+        <b>__________________</b> via NEFT/RTGS/IMPS under UTR No. <b>__________________</b> dated <b>__________________</b> as per details given
+        below.</p>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Invoice No. & Date</th>
-                <th>RFD No. & Date</th>
-                <th>Gross Amount</th>
-                <th>TDS</th>
-                <th>Other Deductions</th>
-                <th>Net Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>66 (2025-03-14)</td>
-                <td>66 (2025-02-26)</td>
-                <td>55</td>
-                <td>55</td>
-                <td>55</td>
-                <td>66</td>
-            </tr>
-            <tr>
-                <td>8899 (2025-03-04)</td>
-                <td>44 (2025-03-11)</td>
-                <td>54.85</td>
-                <td>-0.13</td>
-                <td>88</td>
-                <td>55</td>
-            </tr>
-            <tr>
-                <td>77 (2025-03-04)</td>
-                <td>oo (2025-03-26)</td>
-                <td>777</td>
-                <td>777</td>
-                <td>999</td>
-                <td>98.88</td>
-            </tr>
-        </tbody>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>Particulars</th>
+                    <th>Invoice No. & Date</th>
+                    <th>Gross Amount</th>
+                    <th>TDS</th>
+                    <th>Any Other Deduction</th>
+                    <th>Net Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td colspan="5"><b>Total</b></td>
+                    <td>&nbsp;</td>
+                </tr>
+            </tbody>
+        </table>
 
-    <p class="total">Total Amount Credited: Rs. 66</p>
+        <p style="text-align: right;"><b>For Ploughman Agro Private Limited</b></p>
+        <img src="img/papl.png" alt="Company Logo">
+    </div>
 
-    <div class="footer">
-        <p>For Ploughman Agro Private Limited</p>
+    <div class="note">
         <p>Note: This is a computer-generated advice and does not require any signature.</p>
-        <p>Ploughman Agro Private Limited, GOYAL DUPLEX NO. 04, GULMOHAR COLONY, BEHIND SAVOY COMPLEX, BHOPAL, MADHYA PRADESH 462039</p>
-        <p>CIN: U01100MP2020PTC051052 | EMAIL: ploughmanagro@gmail.com</p>
     </div>
 
+    <div class="company-details">
+        <p><b>Ploughman Agro Private Limited</b><br>
+        GOYAL DUPLEX NO. 04, GULMOHAR COLONY<br>
+        BEHIND SAVOY COMPLEX, BHOPAL<br>
+        MADHYA PRADESH 462039<br>
+        CIN: U01100MP2020PTC051052<br>
+        EMAIL: <a href="mailto:ploughmanagro@gmail.com">ploughmanagro@gmail.com</a></p>
+    </div>
 </body>
 </html>

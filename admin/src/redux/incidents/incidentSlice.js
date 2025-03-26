@@ -77,23 +77,16 @@ export const deleteIncident = createAsyncThunk(
   }
 );
 
-export const addTimelineEntry = createAsyncThunk(
-  "incidents/addTimelineEntry",
-  async ({ id, timelineData }, { rejectWithValue }) => {
+export const fetchRecipientByName = createAsyncThunk(
+  "recipients/fetchByName",
+  async ({ namePrefix }, { rejectWithValue }) => {
     try {
-      const { user } = getUserData();
-      const response = await axios.post(`/incident/${id}/timeline`, {
-        ...timelineData,
-        userId: user.id,
-      });
-
-      if (response.data.success) {
-        toast.success(response.data.message);
-      }
+      const response = await axios.get(
+        `/incident/recipients?name=${namePrefix}`
+      );
       return response.data.data;
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
-      return rejectWithValue(error.response?.data?.message || error.message);
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -101,6 +94,7 @@ export const addTimelineEntry = createAsyncThunk(
 const initialState = {
   incidents: [],
   isLoading: false,
+  recipientNames: [],
   incidentData: {
     ref_no: "",
     date: "",
@@ -127,7 +121,6 @@ const incidentSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Fetch Incidents
     builder.addCase(fetchIncidents.pending, (state) => {
       state.isLoading = true;
       state.error = null;
@@ -190,21 +183,15 @@ const incidentSlice = createSlice({
       state.error = action.payload;
     });
 
-    // Add Timeline Entry
-    builder.addCase(addTimelineEntry.pending, (state) => {
+    builder.addCase(fetchRecipientByName.pending, (state) => {
       state.isLoading = true;
       state.error = null;
     });
-    builder.addCase(addTimelineEntry.fulfilled, (state, action) => {
+    builder.addCase(fetchRecipientByName.fulfilled, (state, action) => {
       state.isLoading = false;
-      const index = state.incidents.findIndex(
-        (incident) => incident._id === action.payload._id
-      );
-      if (index !== -1) {
-        state.incidents[index] = action.payload;
-      }
+      state.recipientNames = action.payload;
     });
-    builder.addCase(addTimelineEntry.rejected, (state, action) => {
+    builder.addCase(fetchRecipientByName.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
     });

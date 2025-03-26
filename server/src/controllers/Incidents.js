@@ -6,6 +6,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { pdfGenerate } from "../utils/pdfGenerator.js";
+import Services from "../models/Services.js";
 
 export const createIncident = async (req, res) => {
   try {
@@ -167,6 +168,42 @@ export const deleteIncident = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error deleting incident",
+      error: error.message,
+    });
+  }
+};
+
+export const getAllRecipients = async (req, res) => {
+  try {
+    const { name } = req.query;
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: "Recipient name is required as a query parameter",
+      });
+    }
+
+    const nameRegex = new RegExp(name, "i");
+    const recipients = await Services.find({
+      name: nameRegex,
+    }).select("-__v");
+
+    if (recipients.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No recipients found matching the name",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Recipients fetched successfully",
+      data: recipients,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching recipients",
       error: error.message,
     });
   }

@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import StatusChips from "../common/StatusChip";
 import { Button } from "../ui/button";
 import { useDispatch } from "react-redux";
-import { addTimelineEntry } from "@/redux/incidents/incidentSlice";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 
@@ -28,12 +27,6 @@ const RecordUpdate = ({ incident, onClose }) => {
       alert("Please provide both message and status.");
       return;
     }
-    dispatch(
-      addTimelineEntry({
-        id: incident._id,
-        timelineData: { ...newTimeLine },
-      })
-    );
     onClose();
   };
 

@@ -1,7 +1,6 @@
-# **Status Page Application**
 
 ## **Overview**
-A simplified status page application designed to manage service statuses, incidents, and real-time updates. This application provides a seamless experience for administrators to manage services and their statuses while offering a public-facing page for users to view service updates.
+
 
 ---
 
@@ -27,7 +26,6 @@ A simplified status page application designed to manage service statuses, incide
 
 ### **Public-Facing Features**
 - Dedicated pages for Sign-In, Sign-Up, and Onboarding.
-- Public status page to view the real-time status of services.
 - Access to a demo of public pages displaying all joined organizations.
 - Timeline of incidents and status changes.
 
@@ -51,7 +49,6 @@ A simplified status page application designed to manage service statuses, incide
 - **Clerk.js**: User and team authentication and management.
 
 ### **Deployment**
-- **Netlify**: Deployed at [Status Page Application](https://amit-status-page.netlify.app/).
 
 ---
 
@@ -111,14 +108,12 @@ This will simultaneously start:
 
 #### **4. Access the Application**  
 - Admin Panel: `http://localhost:5173`
-- Public Status Page: `http://localhost:5173/organization/companyName`
 
 ---
 
 ## **Demo and Deployment**
 
 ### **Deployment Links**
-- Frontend Live URL: [https://amit-status-page.netlify.app/](https://amit-status-page.netlify.app/)
 - Backend Server: https://statuspage.duckdns.org
 
 ### **Hosting Details**

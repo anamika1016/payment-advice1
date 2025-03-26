@@ -31,7 +31,7 @@ const ProfilePage = () => {
                 </label>
 
                 <p className="mt-1 text-gray-700 capitalize">
-                  {user?.userName}
+                  {user?.name}
                 </p>
               </div>
 
@@ -39,7 +39,7 @@ const ProfilePage = () => {
                 <label className="block text-sm font-medium text-gray-400">
                   Email Address
                 </label>
-                <p className="mt-1 text-gray-700">{user?.userEmail}</p>
+                <p className="mt-1 text-gray-700">{user?.email}</p>
               </div>
 
               <div>
@@ -48,7 +48,7 @@ const ProfilePage = () => {
                 </label>
 
                 <p className="mt-1 text-gray-700">
-                  {organizationDetails?.companyName}
+                  {user?.company}
                 </p>
               </div>
 

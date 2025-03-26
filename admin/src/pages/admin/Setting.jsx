@@ -56,10 +56,10 @@ const Setting = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800 flex items-center">
             <LuUsers className="mr-3 text-blue-600" />
-            Organization Settings
+            Settings
           </h1>
           <p className="text-gray-500 mt-2">
-            Manage your organization's members and settings
+            Manage your settings
           </p>
         </div>
 
@@ -74,7 +74,7 @@ const Setting = () => {
             <CardContent>
               <div className="flex items-center bg-gray-100 p-3 rounded-lg">
                 <span className="flex-grow text-sm text-gray-700 truncate">
-                  {window.location.origin}/organization/
+                  {window.location.origin}/payment/invoice/
                   {organizationDetails?.slug}
                 </span>
                 <CopyToClipboard
@@ -152,43 +152,6 @@ const Setting = () => {
             </CardContent>
           </Card>
         </div>
-
-        <Card className="mt-6 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <LuUsers className="mr-2 text-purple-600" />
-              Organization Members
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {members.length === 0 ? (
-              <div className="text-center text-gray-500 py-4">
-                No members found. Invite your team!
-              </div>
-            ) : (
-              <ul className="divide-y divide-gray-200">
-                {members.map((member, index) => (
-                  <li
-                    key={index}
-                    className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div>
-                      <div className="font-semibold text-gray-800">
-                        {member?.userName}
-                      </div>
-                      <div className="text-gray-500 text-sm">
-                        {member?.userEmail}
-                      </div>
-                    </div>
-                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                      {member?.role.toLowerCase()}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </Layout>
   );

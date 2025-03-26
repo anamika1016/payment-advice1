@@ -17,23 +17,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import PaymentForm from "@/components/incidents/PaymentForm";
-import Chip from "@/components/common/Chip";
 import { useDispatch, useSelector } from "react-redux";
 import {
   deleteIncident,
   fetchIncidents,
 } from "@/redux/incidents/incidentSlice";
-import { formatDate } from "@/utils.js";
-import { Eye } from "lucide-react";
-import IncidentTimeLine from "@/components/incidents/IncidentTimeLine";
-import RecordUpdate from "@/components/incidents/RecordUpdate";
 
 const Payment = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState(null);
-  const [isTimelineDialogOpen, setIsTimelineDialogOpen] = useState(false);
-  const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
 
   const { incidents } = useSelector((state) => state.incidents);
   const dispatch = useDispatch();
@@ -50,26 +43,6 @@ const Payment = () => {
   const closeDialog = () => {
     setIsDialogOpen(false);
     setSelectedIncident(null);
-  };
-
-  const openTimelineDialog = (incident) => {
-    setSelectedIncident(incident);
-    setIsTimelineDialogOpen(true);
-  };
-
-  const closeTimelineDialog = () => {
-    setSelectedIncident(null);
-    setIsTimelineDialogOpen(false);
-  };
-
-  const openRecordDialog = (incident) => {
-    setSelectedIncident(incident);
-    setIsRecordDialogOpen(true);
-  };
-
-  const closeRecordDialog = () => {
-    setSelectedIncident(null);
-    setIsRecordDialogOpen(false);
   };
 
   const openDeleteConfirmation = (incident) => {
@@ -177,32 +150,6 @@ const Payment = () => {
               </TableBody>
             </Table>
           </div>
-
-          {/* Timeline Dialog */}
-          <Dialog
-            open={isTimelineDialogOpen}
-            onOpenChange={closeTimelineDialog}
-          >
-            <DialogContent className="max-w-[95vw] w-auto min-w-[300px] max-h-[80vh] overflow-y-auto p-6">
-              <DialogHeader>
-                <DialogTitle>Incident Timeline</DialogTitle>
-              </DialogHeader>
-              <IncidentTimeLine incident={selectedIncident} />
-            </DialogContent>
-          </Dialog>
-
-          {/* Record Update Dialog */}
-          <Dialog open={isRecordDialogOpen} onOpenChange={closeRecordDialog}>
-            <DialogContent className="w-[90vw] sm:w-[600px] h-auto max-h-[80vh] p-6 rounded-lg overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Record Update</DialogTitle>
-              </DialogHeader>
-              <RecordUpdate
-                incident={selectedIncident}
-                onClose={closeRecordDialog}
-              />
-            </DialogContent>
-          </Dialog>
 
           {/* Incident Form Dialog */}
           <Dialog open={isDialogOpen} onOpenChange={closeDialog}>

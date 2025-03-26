@@ -16,15 +16,15 @@ const Dashboard = () => {
         <div className="mt-[10%] flex flex-col items-center justify-center">
           <div className="bg-white shadow-lg rounded-xl p-10 w-full max-w-lg">
             <h1 className="text-4xl font-extrabold text-purple-600 mb-6">
-              Dashboard
+              INvoice App
             </h1>
             <p className="text-lg mb-6 font-bold text-purple-800 capitalize">
-              Hello {user?.userName}!
+              Hello {user?.name}!
             </p>
             <p>
               {" "}
-              Welcome to Status page App, where you can manage your User status
-              with ease.
+              Welcome to payment invoice App, where you can manage your User and
+              payment details.
             </p>
           </div>
         </div>

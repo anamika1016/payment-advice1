@@ -1,28 +1,30 @@
 import React, { useEffect } from "react";
-import { incidentStatus } from "@/data";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
-
 import {
   addIncident,
+  fetchRecipientByName,
   resetIncident,
   setIncidentData,
   updateIncident,
 } from "@/redux/incidents/incidentSlice";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
+import SearchResults from "./SearchResult";
 
 const paymentForm = ({ incident, onClose }) => {
   const dispatch = useDispatch();
-  const { incidentData } = useSelector((state) => state.incidents);
+  const { incidentData, recipientNames } = useSelector(
+    (state) => state.incidents
+  );
+  console.log("recipientNames", recipientNames);
 
   useEffect(() => {
     if (incident) {
-      dispatch(setIncidentData({ ...incident })); // Load all incident attributes
+      dispatch(setIncidentData({ ...incident }));
     } else {
       dispatch(
         setIncidentData({
-          // Initialize with empty/default values
           ref_no: "",
           date: null,
           recipient_name: "",
@@ -41,8 +43,13 @@ const paymentForm = ({ incident, onClose }) => {
     return () => dispatch(resetIncident());
   }, [incident, dispatch]);
 
-  const handleStatusSelect = (status) => {
-    dispatch(setIncidentData({ status: status.name }));
+  const handleChange = (id, value) => {
+    dispatch(setIncidentData({ [id]: value }));
+    dispatch(fetchRecipientByName({ namePrefix: value.toLowerCase() }));
+  };
+
+  const onSelectChange = (id, value) => {
+    dispatch(setIncidentData({ [id]: value }));
   };
 
   const onInputChange = (e) => {
@@ -50,8 +57,8 @@ const paymentForm = ({ incident, onClose }) => {
 
     dispatch(
       setIncidentData({
-        ...incidentData, // Preserve existing values
-        [id]: value, // Update only the changed field
+        ...incidentData,
+        [id]: value,
       })
     );
   };
@@ -125,22 +132,20 @@ const paymentForm = ({ incident, onClose }) => {
           required
         />
       </div>
-
-      <div>
-        <Label htmlFor="recipient_name" className="required-input">
-          Recipient Name
-        </Label>
-        <Input
+      <div className="flex-grow">
+        <SearchResults
+          label="Recipient Name"
+          items={recipientNames}
+          onInputChange={handleChange}
+          onItemSelect={onSelectChange}
           id="recipient_name"
-          type="text"
           value={incidentData.recipient_name}
-          onChange={onInputChange}
-          placeholder="Enter Recipient Name"
-          required
+          placeholder="Search your Recipient Name..."
         />
       </div>
+
       <div>
-        <Label htmlFor="recipient_name" className="required-input">
+        <Label htmlFor="recipient_email" className="required-input">
           Recipient Email
         </Label>
         <Input

@@ -5,11 +5,13 @@ import {
   getIncidentById,
   updateIncident,
   deleteIncident,
+  getAllRecipients,
 } from "../controllers/Incidents.js";
 import { authenticateToken, isAdmin } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
+router.get("/recipients", authenticateToken, isAdmin, getAllRecipients);
 router.post("/", authenticateToken, isAdmin, createIncident);
 router.get("/", getAllIncidents);
 router.get("/:id", authenticateToken, isAdmin, getIncidentById);
