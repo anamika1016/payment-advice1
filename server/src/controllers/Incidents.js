@@ -182,8 +182,7 @@ export const getAllRecipients = async (req, res) => {
         message: "Recipient name is required as a query parameter",
       });
     }
-
-    const nameRegex = new RegExp(name, "i");
+    const nameRegex = new RegExp(`^${name}`, "i");
     const recipients = await Services.find({
       name: nameRegex,
     }).select("-__v");
