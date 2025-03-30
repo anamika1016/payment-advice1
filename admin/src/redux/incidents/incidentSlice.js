@@ -91,6 +91,30 @@ export const fetchRecipientByName = createAsyncThunk(
   }
 );
 
+export const updateIncidentStatus = createAsyncThunk(
+  "incidents/updateStatus",
+  async ({ id, status }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`/api/incidents/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update status");
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 const initialState = {
   incidents: [],
   isLoading: false,
@@ -194,6 +218,15 @@ const incidentSlice = createSlice({
     builder.addCase(fetchRecipientByName.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
+    });
+
+    builder.addCase(updateIncidentStatus.fulfilled, (state, action) => {
+      const index = state.incidents.findIndex(
+        (incident) => incident._id === action.payload._id
+      );
+      if (index !== -1) {
+        state.incidents[index] = action.payload;
+      }
     });
   },
 });

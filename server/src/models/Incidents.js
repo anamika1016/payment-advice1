@@ -12,6 +12,11 @@ const incidentSchema = new mongoose.Schema(
     amount: { type: Number },
     utr_no: { type: String, trim: true },
     transaction_date: { type: Date },
+    status: {
+      type: String,
+      enum: ["Approved", "Pending", "Rejected"],   
+      default: "Pending",
+    },
     invoices: [
       {
         invoice_no: { type: String, trim: true },
