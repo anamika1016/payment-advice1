@@ -301,12 +301,7 @@ const Payment = () => {
                   {selectedIncident ? "Edit Payment" : "New Payment"}
                 </DialogTitle>
               </DialogHeader>
-              <PaymentForm
-                incident={
-                  selectedIncident ? selectedIncident : { status: "Pending" }
-                }
-                onClose={closeDialog}
-              />
+              <PaymentForm incident={selectedIncident} onClose={closeDialog} />
             </DialogContent>
           </Dialog>
 
