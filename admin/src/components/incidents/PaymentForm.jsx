@@ -24,7 +24,6 @@ const PaymentForm = ({ incident, onClose }) => {
   const { incidentData, recipientNames } = useSelector(
     (state) => state.incidents
   );
-  console.log("recipientNames", recipientNames);
 
   useEffect(() => {
     if (incident) {
@@ -51,7 +50,6 @@ const PaymentForm = ({ incident, onClose }) => {
   }, [incident, dispatch]);
 
   const handleChange = (id, value) => {
-    dispatch(setIncidentData({ [id]: value }));
     if (id === "recipientName") {
       dispatch(fetchRecipientByName({ namePrefix: value.toLowerCase() }));
     }
@@ -73,10 +71,10 @@ const PaymentForm = ({ incident, onClose }) => {
 
   const handleSubmit = () => {
     const dataToSubmit = { ...incidentData };
-    
+
     // Map field names to match schema before submission
     if (dataToSubmit.invoices && dataToSubmit.invoices.length > 0) {
-      dataToSubmit.invoices = dataToSubmit.invoices.map(invoice => ({
+      dataToSubmit.invoices = dataToSubmit.invoices.map((invoice) => ({
         refNo: invoice.refNo,
         recipientName: invoice.recipientName,
         recipientEmail: invoice.recipientEmail,
@@ -89,7 +87,7 @@ const PaymentForm = ({ incident, onClose }) => {
         tds: invoice.tds,
         otherDeductions: invoice.otherDeductions,
         netAmount: invoice.netAmount,
-        status: invoice.status || "Pending"
+        status: invoice.status || "Pending",
       }));
     }
 
@@ -111,6 +109,53 @@ const PaymentForm = ({ incident, onClose }) => {
     dispatch(setIncidentData({ invoices: updatedInvoices }));
   };
 
+  const handleRecipientSelect = (index, field, value) => {
+    const updatedInvoices = [...(incidentData.invoices || [])];
+
+    // If receiving the entire recipient data object
+    if (field === "recipient_data") {
+      // Map recipient data fields to our invoice fields
+      updatedInvoices[index] = {
+        ...updatedInvoices[index],
+        recipientName: value.name || "",
+        recipientEmail: value.email || "",
+        recipientAddress: value.bankAddress
+          ? `${value.bankAddress}${
+              value.district ? `, ${value.district}` : ""
+            }${value.state ? `, ${value.state}` : ""}`
+          : "",
+        accountNumber: value.accountNumber || "",
+        ifscCode: value.ifscCode || "",
+        // Add any other fields you want to map
+      };
+    } else {
+      // Handle individual field updates (backward compatibility)
+      const fieldMapping = {
+        recipient_name: "recipientName",
+        recipient_email: "recipientEmail",
+        recipient_address: "recipientAddress",
+        account_number: "accountNumber",
+        ifsc_code: "ifscCode",
+      };
+
+      const mappedField = fieldMapping[field] || field;
+      updatedInvoices[index] = {
+        ...updatedInvoices[index],
+        [mappedField]: value,
+      };
+    }
+
+    dispatch(setIncidentData({ invoices: updatedInvoices }));
+  };
+
+  const handleRecipientSearch = (index, value) => {
+    // Update the recipientName field
+    handleInvoiceChange(index, "recipientName", value);
+
+    // Fetch matching recipients
+    dispatch(fetchRecipientByName({ namePrefix: value.toLowerCase() }));
+  };
+
   const addInvoice = () => {
     dispatch(
       setIncidentData({
@@ -125,12 +170,10 @@ const PaymentForm = ({ incident, onClose }) => {
             ifscCode: "",
             amount: "",
             invoiceNo: "",
-            invoiceDate: new Date().toISOString().split("T")[0],
             grossAmount: "",
             tds: "",
             otherDeductions: "",
             netAmount: "",
-            status: "Pending"
           },
         ],
       })
@@ -263,23 +306,27 @@ const PaymentForm = ({ incident, onClose }) => {
               </div>
 
               <div>
-                <Label htmlFor={`recipientName_${index}`} className="required-input">
-                  Recipient Name
-                </Label>
-                <Input
+                {/* Replace the recipient name input with the SearchResults component */}
+                <SearchResults
                   id={`recipientName_${index}`}
-                  type="text"
+                  label="Recipient Name"
+                  items={recipientNames || []}
                   value={invoice.recipientName || ""}
-                  onChange={(e) =>
-                    handleInvoiceChange(index, "recipientName", e.target.value)
+                  onInputChange={(_, value) =>
+                    handleRecipientSearch(index, value)
                   }
-                  placeholder="Enter Recipient Name"
-                  required
+                  onItemSelect={(field, value) =>
+                    handleRecipientSelect(index, field, value)
+                  }
+                  placeholder="Search for recipient..."
                 />
-              </div> 
+              </div>
 
               <div>
-                <Label htmlFor={`recipientEmail_${index}`} className="required-input">
+                <Label
+                  htmlFor={`recipientEmail_${index}`}
+                  className="required-input"
+                >
                   Recipient Email
                 </Label>
                 <Input
@@ -287,11 +334,7 @@ const PaymentForm = ({ incident, onClose }) => {
                   type="email"
                   value={invoice.recipientEmail || ""}
                   onChange={(e) =>
-                    handleInvoiceChange(
-                      index,
-                      "recipientEmail",
-                      e.target.value
-                    )
+                    handleInvoiceChange(index, "recipientEmail", e.target.value)
                   }
                   placeholder="Enter Recipient Email"
                   required
@@ -318,7 +361,10 @@ const PaymentForm = ({ incident, onClose }) => {
               </div>
 
               <div>
-                <Label htmlFor={`accountNumber_${index}`} className="required-input">
+                <Label
+                  htmlFor={`accountNumber_${index}`}
+                  className="required-input"
+                >
                   Account Number
                 </Label>
                 <Input
@@ -334,7 +380,9 @@ const PaymentForm = ({ incident, onClose }) => {
               </div>
 
               <div>
-                <Label htmlFor={`ifscCode_${index}`} className="required-input">IFSC Code</Label>
+                <Label htmlFor={`ifscCode_${index}`} className="required-input">
+                  IFSC Code
+                </Label>
                 <Input
                   id={`ifscCode_${index}`}
                   type="text"
@@ -348,7 +396,9 @@ const PaymentForm = ({ incident, onClose }) => {
               </div>
 
               <div>
-                <Label htmlFor={`amount_${index}`} className="required-input">Amount</Label>
+                <Label htmlFor={`amount_${index}`} className="required-input">
+                  Amount
+                </Label>
                 <Input
                   id={`amount_${index}`}
                   type="number"
@@ -361,7 +411,7 @@ const PaymentForm = ({ incident, onClose }) => {
                   required
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor={`invoiceNo_${index}`}>Invoice Number</Label>
                 <Input
@@ -374,23 +424,7 @@ const PaymentForm = ({ incident, onClose }) => {
                   placeholder="Enter Invoice Number"
                 />
               </div>
-              
-              <div>
-                <Label htmlFor={`invoiceDate_${index}`}>Invoice Date</Label>
-                <Input
-                  id={`invoiceDate_${index}`}
-                  type="date"
-                  value={
-                    invoice.invoiceDate
-                      ? new Date(invoice.invoiceDate).toISOString().split("T")[0]
-                      : ""
-                  }
-                  onChange={(e) =>
-                    handleInvoiceChange(index, "invoiceDate", e.target.value)
-                  }
-                />
-              </div>
-              
+
               <div>
                 <Label htmlFor={`grossAmount_${index}`}>Gross Amount</Label>
                 <Input
@@ -451,23 +485,6 @@ const PaymentForm = ({ incident, onClose }) => {
                   }
                   placeholder="Enter Net Amount"
                 />
-              </div>
-              
-              <div>
-                <Label htmlFor={`status_${index}`}>Status</Label>
-                <Select
-                  value={invoice.status || "Pending"}
-                  onValueChange={(value) => handleInvoiceChange(index, "status", value)}
-                >
-                  <SelectTrigger id={`status_${index}`}>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Approved">Approved</SelectItem>
-                    <SelectItem value="Rejected">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 
