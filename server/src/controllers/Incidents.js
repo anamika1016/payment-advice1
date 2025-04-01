@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import incidentModel from "../models/Incidents.js";
+import incidentModel from "../models/Invoice.js";
 import { sendEmail } from "../utils/mailer.js";
 import util from "util";
 import fs from "fs";

@@ -7,7 +7,7 @@ export const fetchIncidents = createAsyncThunk(
   "incidents/fetchIncidents",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`/incident`);
+      const response = await axios.get(`/invoice`);
       return response.data.data;
     } catch (error) {
       toast.error(error.response?.data?.message || error.message);
@@ -23,7 +23,7 @@ export const addIncident = createAsyncThunk(
       console.log(incidentData);
 
       const { user } = getUserData();
-      const response = await axios.post("/incident", {
+      const response = await axios.post("/invoice/createInvoice", {
         ...incidentData,
         userId: user.id,
       });
@@ -120,15 +120,13 @@ const initialState = {
   isLoading: false,
   recipientNames: [],
   incidentData: {
-    ref_no: "",
-    date: "",
-    recipient_name: "",
-    recipient_address: "",
-    account_number: "",
-    ifsc_code: "",
+    paymentType: "",
+    utrNo: "",
+    bankName: "",
+    senderAccountNumber: "",
     amount: "",
-    utr_no: "",
-    transaction_date: "",
+    transactionDate: new Date().toISOString().split("T")[0],
+    invoices: []
   },
   error: null,
 };

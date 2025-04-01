@@ -7,6 +7,7 @@ import cors from "cors";
 import serviceRoutes from "./routes/Services.js";
 import incidentRoutes from "./routes/Incidents.js";
 import userRoutes from "./routes/Users.js";
+import invoiceRoutes from "./routes/Invoice.js"
 
 // configure env
 dotenv.config();
@@ -26,6 +27,7 @@ app.use(morgan("dev"));
 app.use("/api/v1/service", serviceRoutes);
 app.use("/api/v1/incident", incidentRoutes);
 app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/invoice", invoiceRoutes)
 
 //rest api
 app.get("/", (req, res) => {

@@ -11,8 +11,15 @@ import {
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import SearchResults from "./SearchResult";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
-const paymentForm = ({ incident, onClose }) => {
+const PaymentForm = ({ incident, onClose }) => {
   const dispatch = useDispatch();
   const { incidentData, recipientNames } = useSelector(
     (state) => state.incidents
@@ -21,20 +28,20 @@ const paymentForm = ({ incident, onClose }) => {
 
   useEffect(() => {
     if (incident) {
-      dispatch(setIncidentData({ ...incident }));
+      const formattedIncident = {
+        ...incident,
+        invoices: incident.invoices || [],
+      };
+      dispatch(setIncidentData(formattedIncident));
     } else {
       dispatch(
         setIncidentData({
-          ref_no: "",
-          date: null,
-          recipient_name: "",
-          recipient_email: "",
-          recipient_address: "",
-          account_number: "",
-          ifsc_code: "",
+          paymentType: "",
+          utrNo: "",
+          bankName: "",
+          senderAccountNumber: "",
           amount: null,
-          utr_no: "",
-          transaction_date: null,
+          transactionDate: new Date().toISOString().split("T")[0],
           invoices: [],
         })
       );
@@ -45,7 +52,9 @@ const paymentForm = ({ incident, onClose }) => {
 
   const handleChange = (id, value) => {
     dispatch(setIncidentData({ [id]: value }));
-    dispatch(fetchRecipientByName({ namePrefix: value.toLowerCase() }));
+    if (id === "recipientName") {
+      dispatch(fetchRecipientByName({ namePrefix: value.toLowerCase() }));
+    }
   };
 
   const onSelectChange = (id, value) => {
@@ -54,7 +63,6 @@ const paymentForm = ({ incident, onClose }) => {
 
   const onInputChange = (e) => {
     const { id, value } = e.target;
-
     dispatch(
       setIncidentData({
         ...incidentData,
@@ -64,12 +72,36 @@ const paymentForm = ({ incident, onClose }) => {
   };
 
   const handleSubmit = () => {
-    if (incident) {
-      dispatch(updateIncident({ id: incidentData._id, incidentData }));
-    } else {
-      dispatch(addIncident(incidentData));
+    const dataToSubmit = { ...incidentData };
+    
+    // Map field names to match schema before submission
+    if (dataToSubmit.invoices && dataToSubmit.invoices.length > 0) {
+      dataToSubmit.invoices = dataToSubmit.invoices.map(invoice => ({
+        refNo: invoice.refNo,
+        recipientName: invoice.recipientName,
+        recipientEmail: invoice.recipientEmail,
+        recipientAddress: invoice.recipientAddress,
+        accountNumber: invoice.accountNumber,
+        ifscCode: invoice.ifscCode,
+        amount: invoice.amount,
+        invoiceNo: invoice.invoiceNo,
+        grossAmount: invoice.grossAmount,
+        tds: invoice.tds,
+        otherDeductions: invoice.otherDeductions,
+        netAmount: invoice.netAmount,
+        status: invoice.status || "Pending"
+      }));
     }
 
+    console.log("Submitting data:", dataToSubmit);
+
+    if (incident) {
+      dispatch(
+        updateIncident({ id: dataToSubmit._id, incidentData: dataToSubmit })
+      );
+    } else {
+      dispatch(addIncident(dataToSubmit));
+    }
     onClose();
   };
 
@@ -85,19 +117,26 @@ const paymentForm = ({ incident, onClose }) => {
         invoices: [
           ...(incidentData.invoices || []),
           {
-            invoice_no: "",
-            invoice_date: "",
-            rfd_id: "",
-            rfd_date: "",
-            gross_amount: "",
+            refNo: "",
+            recipientName: "",
+            recipientEmail: "",
+            recipientAddress: "",
+            accountNumber: "",
+            ifscCode: "",
+            amount: "",
+            invoiceNo: "",
+            invoiceDate: new Date().toISOString().split("T")[0],
+            grossAmount: "",
             tds: "",
-            other_deductions: "",
-            net_amount: "",
+            otherDeductions: "",
+            netAmount: "",
+            status: "Pending"
           },
         ],
       })
     );
   };
+
   const removeInvoice = (index) => {
     const updatedInvoices = [...(incidentData.invoices || [])];
     updatedInvoices.splice(index, 1);
@@ -107,95 +146,61 @@ const paymentForm = ({ incident, onClose }) => {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <Label htmlFor="ref_no" className="required-input">
-          Reference Number
+        <Label htmlFor="paymentType" className="required-input">
+          Payment Type
+        </Label>
+        <Select
+          value={incidentData.paymentType}
+          onValueChange={(value) => onSelectChange("paymentType", value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select payment type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="nft">NFT</SelectItem>
+            <SelectItem value="upi">UPI</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="utrNo" className="required-input">
+          UTR Number
         </Label>
         <Input
-          id="ref_no"
+          id="utrNo"
           type="text"
-          value={incidentData.ref_no}
+          value={incidentData.utrNo || ""}
           onChange={onInputChange}
-          placeholder="Enter Reference Number"
+          placeholder="Enter UTR Number"
           required
         />
       </div>
 
       <div>
-        <Label htmlFor="date" className="required-input">
-          Date
+        <Label htmlFor="bankName" className="required-input">
+          Bank Name
         </Label>
         <Input
-          id="date"
-          type="date"
-          value={incidentData.date}
-          onChange={onInputChange}
-          required
-        />
-      </div>
-      <div className="flex-grow">
-        <SearchResults
-          label="Recipient Name"
-          items={recipientNames}
-          onInputChange={handleChange}
-          onItemSelect={onSelectChange}
-          id="recipient_name"
-          value={incidentData.recipient_name}
-          placeholder="Search your Recipient Name..."
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="recipient_email" className="required-input">
-          Recipient Email
-        </Label>
-        <Input
-          id="recipient_email"
+          id="bankName"
           type="text"
-          value={incidentData.recipient_email}
+          value={incidentData.bankName || ""}
           onChange={onInputChange}
-          placeholder="Enter Recipient email"
+          placeholder="Enter Bank Name"
           required
         />
       </div>
 
       <div>
-        <Label htmlFor="recipient_address" className="required-input">
-          Recipient Address
-        </Label>
-        <Input
-          id="recipient_address"
-          type="text"
-          value={incidentData.recipient_address}
-          onChange={onInputChange}
-          placeholder="Enter Recipient Address"
-          required
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="account_number" className="required-input">
+        <Label htmlFor="senderAccountNumber" className="required-input">
           Account Number
         </Label>
         <Input
-          id="account_number"
+          id="senderAccountNumber"
           type="text"
-          value={incidentData.account_number}
+          value={incidentData.senderAccountNumber || ""}
           onChange={onInputChange}
           placeholder="Enter Account Number"
-          required
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="ifsc_code" className="required-input">
-          IFSC Code
-        </Label>
-        <Input
-          id="ifsc_code"
-          type="text"
-          value={incidentData.ifsc_code}
-          onChange={onInputChange}
-          placeholder="Enter IFSC Code"
           required
         />
       </div>
@@ -208,7 +213,7 @@ const paymentForm = ({ incident, onClose }) => {
           id="amount"
           type="number"
           step="0.01"
-          value={incidentData.amount}
+          value={incidentData.amount || ""}
           onChange={onInputChange}
           placeholder="Enter Amount"
           required
@@ -216,27 +221,19 @@ const paymentForm = ({ incident, onClose }) => {
       </div>
 
       <div>
-        <Label htmlFor="utr_no" className="required-input">
-          UTR Number
-        </Label>
-        <Input
-          id="utr_no"
-          type="text"
-          value={incidentData.utr_no}
-          onChange={onInputChange}
-          placeholder="Enter UTR Number"
-          required
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="transaction_date" className="required-input">
+        <Label htmlFor="transactionDate" className="required-input">
           Transaction Date
         </Label>
         <Input
-          id="transaction_date"
+          id="transactionDate"
           type="date"
-          value={incidentData.transaction_date}
+          value={
+            incidentData.transactionDate
+              ? new Date(incidentData.transactionDate)
+                  .toISOString()
+                  .split("T")[0]
+              : new Date().toISOString().split("T")[0]
+          }
           onChange={onInputChange}
           required
         />
@@ -245,102 +242,237 @@ const paymentForm = ({ incident, onClose }) => {
       {/* Invoice Fields */}
       <div>
         <h3 className="text-lg font-semibold">Invoices</h3>
+        <div className="text-sm text-gray-500 mb-2">
+          Add one or more invoice details below
+        </div>
+
         {(incidentData.invoices || []).map((invoice, index) => (
           <div key={index} className="border p-4 rounded-lg shadow-sm mb-4">
-            <Label htmlFor={`invoice_no_${index}`}>Invoice Number</Label>
-            <Input
-              id={`invoice_no_${index}`}
-              type="text"
-              value={invoice.invoice_no || ""}
-              onChange={(e) =>
-                handleInvoiceChange(index, "invoice_no", e.target.value)
-              }
-              placeholder="Enter Invoice Number"
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor={`refNo_${index}`}>Reference Number</Label>
+                <Input
+                  id={`refNo_${index}`}
+                  type="text"
+                  value={invoice.refNo || ""}
+                  onChange={(e) =>
+                    handleInvoiceChange(index, "refNo", e.target.value)
+                  }
+                  placeholder="Enter Reference Number"
+                />
+              </div>
 
-            <Label htmlFor={`invoice_date_${index}`}>Invoice Date</Label>
-            <Input
-              id={`invoice_date_${index}`}
-              type="date"
-              value={invoice.invoice_date || ""}
-              onChange={(e) =>
-                handleInvoiceChange(index, "invoice_date", e.target.value)
-              }
-            />
+              <div>
+                <Label htmlFor={`recipientName_${index}`} className="required-input">
+                  Recipient Name
+                </Label>
+                <Input
+                  id={`recipientName_${index}`}
+                  type="text"
+                  value={invoice.recipientName || ""}
+                  onChange={(e) =>
+                    handleInvoiceChange(index, "recipientName", e.target.value)
+                  }
+                  placeholder="Enter Recipient Name"
+                  required
+                />
+              </div> 
 
-            <Label htmlFor={`rfd_id_${index}`}>RFD ID</Label>
-            <Input
-              id={`rfd_id_${index}`}
-              type="text"
-              value={invoice.rfd_id || ""}
-              onChange={(e) =>
-                handleInvoiceChange(index, "rfd_id", e.target.value)
-              }
-              placeholder="Enter RFD ID"
-            />
+              <div>
+                <Label htmlFor={`recipientEmail_${index}`} className="required-input">
+                  Recipient Email
+                </Label>
+                <Input
+                  id={`recipientEmail_${index}`}
+                  type="email"
+                  value={invoice.recipientEmail || ""}
+                  onChange={(e) =>
+                    handleInvoiceChange(
+                      index,
+                      "recipientEmail",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Enter Recipient Email"
+                  required
+                />
+              </div>
 
-            <Label htmlFor={`rfd_date_${index}`}>RFD Date</Label>
-            <Input
-              id={`rfd_date_${index}`}
-              type="date"
-              value={invoice.rfd_date || ""}
-              onChange={(e) =>
-                handleInvoiceChange(index, "rfd_date", e.target.value)
-              }
-            />
+              <div>
+                <Label htmlFor={`recipientAddress_${index}`}>
+                  Bank Address
+                </Label>
+                <Input
+                  id={`recipientAddress_${index}`}
+                  type="text"
+                  value={invoice.recipientAddress || ""}
+                  onChange={(e) =>
+                    handleInvoiceChange(
+                      index,
+                      "recipientAddress",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Enter Recipient Address"
+                />
+              </div>
 
-            <Label htmlFor={`gross_amount_${index}`}>Gross Amount</Label>
-            <Input
-              id={`gross_amount_${index}`}
-              type="number"
-              step="0.01"
-              value={invoice.gross_amount || ""}
-              onChange={(e) =>
-                handleInvoiceChange(index, "gross_amount", e.target.value)
-              }
-              placeholder="Enter Gross Amount"
-            />
+              <div>
+                <Label htmlFor={`accountNumber_${index}`} className="required-input">
+                  Account Number
+                </Label>
+                <Input
+                  id={`accountNumber_${index}`}
+                  type="text"
+                  value={invoice.accountNumber || ""}
+                  onChange={(e) =>
+                    handleInvoiceChange(index, "accountNumber", e.target.value)
+                  }
+                  placeholder="Enter Account Number"
+                  required
+                />
+              </div>
 
-            <Label htmlFor={`tds_${index}`}>TDS</Label>
-            <Input
-              id={`tds_${index}`}
-              type="number"
-              step="0.01"
-              value={invoice.tds || ""}
-              onChange={(e) =>
-                handleInvoiceChange(index, "tds", e.target.value)
-              }
-              placeholder="Enter TDS"
-            />
+              <div>
+                <Label htmlFor={`ifscCode_${index}`} className="required-input">IFSC Code</Label>
+                <Input
+                  id={`ifscCode_${index}`}
+                  type="text"
+                  value={invoice.ifscCode || ""}
+                  onChange={(e) =>
+                    handleInvoiceChange(index, "ifscCode", e.target.value)
+                  }
+                  placeholder="Enter IFSC Code"
+                  required
+                />
+              </div>
 
-            <Label htmlFor={`other_deductions_${index}`}>
-              Other Deductions
-            </Label>
-            <Input
-              id={`other_deductions_${index}`}
-              type="number"
-              step="0.01"
-              value={invoice.other_deductions || ""}
-              onChange={(e) =>
-                handleInvoiceChange(index, "other_deductions", e.target.value)
-              }
-              placeholder="Enter Other Deductions"
-            />
+              <div>
+                <Label htmlFor={`amount_${index}`} className="required-input">Amount</Label>
+                <Input
+                  id={`amount_${index}`}
+                  type="number"
+                  step="0.01"
+                  value={invoice.amount || ""}
+                  onChange={(e) =>
+                    handleInvoiceChange(index, "amount", e.target.value)
+                  }
+                  placeholder="Enter Amount"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor={`invoiceNo_${index}`}>Invoice Number</Label>
+                <Input
+                  id={`invoiceNo_${index}`}
+                  type="text"
+                  value={invoice.invoiceNo || ""}
+                  onChange={(e) =>
+                    handleInvoiceChange(index, "invoiceNo", e.target.value)
+                  }
+                  placeholder="Enter Invoice Number"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor={`invoiceDate_${index}`}>Invoice Date</Label>
+                <Input
+                  id={`invoiceDate_${index}`}
+                  type="date"
+                  value={
+                    invoice.invoiceDate
+                      ? new Date(invoice.invoiceDate).toISOString().split("T")[0]
+                      : ""
+                  }
+                  onChange={(e) =>
+                    handleInvoiceChange(index, "invoiceDate", e.target.value)
+                  }
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor={`grossAmount_${index}`}>Gross Amount</Label>
+                <Input
+                  id={`grossAmount_${index}`}
+                  type="number"
+                  step="0.01"
+                  value={invoice.grossAmount || ""}
+                  onChange={(e) =>
+                    handleInvoiceChange(index, "grossAmount", e.target.value)
+                  }
+                  placeholder="Enter Gross Amount"
+                />
+              </div>
 
-            <Label htmlFor={`net_amount_${index}`}>Net Amount</Label>
-            <Input
-              id={`net_amount_${index}`}
-              type="number"
-              step="0.01"
-              value={invoice.net_amount || ""}
-              onChange={(e) =>
-                handleInvoiceChange(index, "net_amount", e.target.value)
-              }
-              placeholder="Enter Net Amount"
-            />
+              <div>
+                <Label htmlFor={`tds_${index}`}>TDS</Label>
+                <Input
+                  id={`tds_${index}`}
+                  type="number"
+                  step="0.01"
+                  value={invoice.tds || ""}
+                  onChange={(e) =>
+                    handleInvoiceChange(index, "tds", e.target.value)
+                  }
+                  placeholder="Enter TDS"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor={`otherDeductions_${index}`}>
+                  Other Deductions
+                </Label>
+                <Input
+                  id={`otherDeductions_${index}`}
+                  type="number"
+                  step="0.01"
+                  value={invoice.otherDeductions || ""}
+                  onChange={(e) =>
+                    handleInvoiceChange(
+                      index,
+                      "otherDeductions",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Enter Other Deductions"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor={`netAmount_${index}`}>Net Amount</Label>
+                <Input
+                  id={`netAmount_${index}`}
+                  type="number"
+                  step="0.01"
+                  value={invoice.netAmount || ""}
+                  onChange={(e) =>
+                    handleInvoiceChange(index, "netAmount", e.target.value)
+                  }
+                  placeholder="Enter Net Amount"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor={`status_${index}`}>Status</Label>
+                <Select
+                  value={invoice.status || "Pending"}
+                  onValueChange={(value) => handleInvoiceChange(index, "status", value)}
+                >
+                  <SelectTrigger id={`status_${index}`}>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Approved">Approved</SelectItem>
+                    <SelectItem value="Rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
             <Button
-              className="mt-2 bg-red-500 hover:bg-red-600 text-white"
+              className="mt-4 bg-red-500 hover:bg-red-600 text-white"
               onClick={() => removeInvoice(index)}
             >
               Remove Invoice
@@ -363,4 +495,4 @@ const paymentForm = ({ incident, onClose }) => {
   );
 };
 
-export default paymentForm;
+export default PaymentForm;

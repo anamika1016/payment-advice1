@@ -42,7 +42,6 @@ const Payment = () => {
 
   useEffect(() => {
     dispatch(fetchIncidents());
-
     fetchInvoiceTemplate();
   }, [dispatch]);
 
@@ -98,10 +97,10 @@ const Payment = () => {
       let html = invoiceTemplate;
 
       html = html
-        .replace("{{customer_name}}", incident.recipient_name || "Customer")
-        .replace("{{invoice_number}}", incident.ref_no || "INV-000")
+        .replace("{{customer_name}}", incident.recipientName || "Customer")
+        .replace("{{invoice_number}}", incident.invoiceNo || "INV-000")
         .replace("{{invoice_amount}}", `₹${incident.amount || "0.00"}`)
-        .replace("{{payment_date}}", incident.date || "01/01/2025")
+        .replace("{{payment_date}}", incident.invoiceDate || "01/01/2025")
         .replace("{{invoice_download_link}}", "#")
         .replace("{{company_name}}", "Your Company")
         .replace("{{company_email}}", "support@yourcompany.com");
@@ -144,7 +143,7 @@ const Payment = () => {
 
       toast({
         title: "Email Sent",
-        description: `Invoice sent to ${incident.recipient_email}`,
+        description: `Invoice sent to ${incident.recipientEmail}`,
       });
 
       return true;
@@ -212,84 +211,71 @@ const Payment = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Reference Number</TableHead>
-                  <TableHead>Date</TableHead>
                   <TableHead>Recipient Name</TableHead>
                   <TableHead>Recipient Email</TableHead>
                   <TableHead>Recipient Address</TableHead>
                   <TableHead>Account Number</TableHead>
                   <TableHead>IFSC Code</TableHead>
                   <TableHead>Amount</TableHead>
-                  <TableHead>UTR Number</TableHead>
-                  <TableHead>Transaction Date</TableHead>
+                  <TableHead>Invoice No</TableHead>
+                  <TableHead>Gross Amount</TableHead>
+                  <TableHead>TDS</TableHead>
+                  <TableHead>Other Deductions</TableHead>
+                  <TableHead>Net Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {incidents.map((incident) => (
-                  <TableRow key={incident._id}>
-                    <TableCell className="font-medium">
-                      {incident.ref_no}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {incident.date}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {incident.recipient_name}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {incident.recipient_email}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {incident.recipient_address}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {incident.account_number}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {incident.ifsc_code}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {incident.amount}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {incident.utr_no}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {incident.transaction_date}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {getStatusBadge(incident.status || "Pending")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button
-                          variant="outline"
-                          className="px-2 py-0.5 text-xs border-gray-500 text-gray-500 hover:bg-gray-500 hover:text-white"
-                          size="sm"
-                          onClick={() => openIncidentDialog(incident)}
-                        >
-                          <FaEdit className="mr-2" /> Edit
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => openDeleteConfirmation(incident)}
-                        >
-                          <FaTrash className="mr-2" /> Delete
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="px-2 py-0.5 text-xs border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-white"
-                          size="sm"
-                          onClick={() => handleShow(incident)}
-                        >
-                          <FaEye className="mr-1" /> Show
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {incidents.map((incident) =>
+                  incident.invoices.map((invoice, index) => (
+                    <TableRow key={invoice.refNo || index}>
+                      {/* Invoice Fields */}
+                      <TableCell>{invoice.refNo}</TableCell>
+                      <TableCell>{invoice.recipientName}</TableCell>
+                      <TableCell>{invoice.recipientEmail}</TableCell>
+                      <TableCell>{invoice.recipientAddress}</TableCell>
+                      <TableCell>{invoice.accountNumber}</TableCell>
+                      <TableCell>{invoice.ifscCode}</TableCell>
+                      <TableCell>{invoice.amount}</TableCell>
+                      <TableCell>{invoice.invoiceNo}</TableCell>
+                      <TableCell>{invoice.grossAmount}</TableCell>
+                      <TableCell>{invoice.tds}</TableCell>
+                      <TableCell>{invoice.otherDeductions}</TableCell>
+                      <TableCell>{invoice.netAmount}</TableCell>
+                      <TableCell>
+                        {getStatusBadge(invoice.status || "Pending")}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="outline"
+                            className="px-2 py-0.5 text-xs border-gray-500 text-gray-500 hover:bg-gray-500 hover:text-white"
+                            size="sm"
+                            onClick={() => openIncidentDialog(incident)}
+                          >
+                            <FaEdit className="mr-2" /> Edit
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => openDeleteConfirmation(incident)}
+                          >
+                            <FaTrash className="mr-2" /> Delete
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="px-2 py-0.5 text-xs border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-white"
+                            size="sm"
+                            onClick={() => handleShow(incident)}
+                          >
+                            <FaEye className="mr-1" /> Show
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
