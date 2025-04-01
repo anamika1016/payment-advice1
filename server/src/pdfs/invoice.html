@@ -2,121 +2,186 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PAYMENT ADVICE</title>
+    <title>Payment Advice</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            font-size: 15px;
             margin: 20px;
-            font-size: 12px;
+            line-height: 1.2;
         }
         .header {
             text-align: center;
-            margin-bottom: 20px;
-        }
-        .title {
-            font-weight: bold;
-            font-size: 14px;
             margin-bottom: 10px;
-            text-decoration: underline;
         }
-        .ref-details {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        .addressee {
-            margin-bottom: 20px;
+        .address-section {
+            margin-bottom: 10px;
         }
         .content {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
-        table {
+        .table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        .table, .table th, .table td {
+            border: 1px solid black;
+            padding: 10px;
+        }
+        .footer {
+            margin-top: 10px;
             text-align: left;
         }
-        table, th, td {
-            border: 1px solid black;
-            padding: 8px;
+        .company-info {
+            text-align: right;
+            margin-bottom: -28px;
+            font-size: 15px;
         }
-        .company-details {
-            margin-top: 20px;
+        .company{
             text-align: center;
-            font-size: 10px;
-            line-height: 1.5;
+            margin-top: 500px;
+            font-size: 15px;
         }
         .note {
-            text-align: center;
             font-style: italic;
-            margin-top: 15px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <img src="img/logo.jpg" alt="Company Logo">
+    <div class="header">     
+        <img src="/img/logo.jpg" alt="Company Logo" width="200" height="70">
+        <h2 style="font-size: 18px;">PAYMENT ADVICE</h2>
     </div>
 
-    <div class="header">
-        <div class="title">PAYMENT ADVICE</div>
-        <div class="ref-details">
-            <span><b>Ref No.</b> _______________________</span>
-            <span><b>Date:</b> _______________________</span>
+    <div class="address-section">
+        <div class="company-info">
+            <p id="date"></p>
         </div>
-    </div>
-
-    <div class="addressee">
-        <p><b>To,</b><br>________________________</p>
+        <p>Ref No.<span id="refNo"></span><br></p>
+        <p>To,<br></p>
+        <p>Dear Sir/Madam,</p>
     </div>
 
     <div class="content">
-        <p>Dear Sir/Madam,</p>
-        <p>We have initiated a credit of Rs. <b>__________________</b> to your Account No. <b>__________________</b> with IFSC Code
-        <b>__________________</b> via NEFT/RTGS/IMPS under UTR No. <b>__________________</b> dated <b>__________________</b> as per details given
+        <p>We have initiated a credit of Rs. <span id="creditAmount">------------------</span> to your Account No. <span id="accountNo">------------------</span> with IFSC Code
+        <span id="ifscCode">---------------</span> vide NEFT/RTGS/IMPS wide UTR No. <span id="utrNo">---------------------</span> dated <span id="paymentDate">-------------</span> as per details given
         below.</p>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Particulars</th>
-                    <th>Invoice No. & Date</th>
-                    <th>Gross Amount</th>
-                    <th>TDS</th>
-                    <th>Any Other Deduction</th>
-                    <th>Net Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                </tr>
-                <tr>
-                    <td colspan="5"><b>Total</b></td>
-                    <td>&nbsp;</td>
-                </tr>
+        <table class="table">
+            <tr>
+                <th>Particulars</th>
+                <th>Invoice No. &<br>Date</th>
+                <th>rfd_id. &<br>Date</th>
+                <th>Gross Amount</th>
+                <th>TDS</th>
+                <th>Any other<br>deduction</th>
+                <th>Net Amount</th>
+            </tr>
+            <tbody id="invoiceDetails">
+                <!-- Dynamic rows will be inserted here -->
             </tbody>
+            <tr>
+                <th>TOTAL</th>
+                <td colspan="6" id="totalAmount"></td>
+            </tr>
         </table>
-
-        <p style="text-align: right;"><b>For Ploughman Agro Private Limited</b></p>
-        <img src="img/papl.png" alt="Company Logo">
     </div>
 
+    <div class="footer">
+        <p><B>For Ploughman Agro Private Limited</B></p>
+    </div>
+    <div>
+        <img src="/img/papl.png" alt="Company Stamp" width="80" height="80">
+    </div>
     <div class="note">
-        <p>Note: This is a computer-generated advice and does not require any signature.</p>
+        <p><B>Note:</B> This is a computer generated advice does not require any signature.</p>
     </div>
 
-    <div class="company-details">
-        <p><b>Ploughman Agro Private Limited</b><br>
-        GOYAL DUPLEX NO. 04, GULMOHAR COLONY<br>
-        BEHIND SAVOY COMPLEX, BHOPAL<br>
-        MADHYA PRADESH 462039<br>
-        CIN: U01100MP2020PTC051052<br>
-        EMAIL: <a href="mailto:ploughmanagro@gmail.com">ploughmanagro@gmail.com</a></p>
+    <div class="company">
+        <p>Ploughman Agro Private Limited GOYAL DUPLEX NO. 04, GULMOHAR COLONY BEHIND SAVOY COMPLEX, BHOPAL<br>
+         MADHYA PRADESH 462039 CIN: U01100MP2020PTC051052 EMAIL ID:ploughmanagro@gmail.com</p>
     </div>
+
+    <script>
+        // Sample Data for dynamic population
+        const paymentData = {
+            date: "2025-04-01",
+            refNo: "PAPL/2025/0001",
+            creditAmount: "500,000",
+            accountNo: "1234567890",
+            ifscCode: "PAPL0001234",
+            utrNo: "UTR20250401XYZ123",
+            paymentDate: "2025-04-01",
+            invoices: [
+                {
+                    particulars: "Product 1",
+                    invoiceNo: "INV123",
+                    invoiceDate: "2025-03-15",
+                    rfdId: "RFD001",
+                    rfdDate: "2025-03-16",
+                    grossAmount: "100,000",
+                    tds: "10,000",
+                    otherDeductions: "2,000",
+                    netAmount: "88,000"
+                },
+                {
+                    particulars: "Product 2",
+                    invoiceNo: "INV124",
+                    invoiceDate: "2025-03-18",
+                    rfdId: "RFD002",
+                    rfdDate: "2025-03-19",
+                    grossAmount: "200,000",
+                    tds: "20,000",
+                    otherDeductions: "5,000",
+                    netAmount: "175,000"
+                },
+                {
+                    particulars: "Product 3",
+                    invoiceNo: "INV125",
+                    invoiceDate: "2025-03-20",
+                    rfdId: "RFD003",
+                    rfdDate: "2025-03-21",
+                    grossAmount: "200,000",
+                    tds: "20,000",
+                    otherDeductions: "5,000",
+                    netAmount: "175,000"
+                }
+            ]
+        };
+
+        // Populate the dynamic fields
+        document.getElementById('date').textContent = paymentData.date;
+        document.getElementById('refNo').textContent = paymentData.refNo;
+        document.getElementById('creditAmount').textContent = paymentData.creditAmount;
+        document.getElementById('accountNo').textContent = paymentData.accountNo;
+        document.getElementById('ifscCode').textContent = paymentData.ifscCode;
+        document.getElementById('utrNo').textContent = paymentData.utrNo;
+        document.getElementById('paymentDate').textContent = paymentData.paymentDate;
+
+        // Generate invoice rows dynamically
+        const invoiceDetailsContainer = document.getElementById('invoiceDetails');
+        let totalAmount = 0;
+
+        paymentData.invoices.forEach(invoice => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${invoice.particulars}</td>
+                <td>${invoice.invoiceNo} &<br>${invoice.invoiceDate}</td>
+                <td>${invoice.rfdId} &<br>${invoice.rfdDate}</td>
+                <td>${invoice.grossAmount}</td>
+                <td>${invoice.tds}</td>
+                <td>${invoice.otherDeductions}</td>
+                <td>${invoice.netAmount}</td>
+            `;
+            invoiceDetailsContainer.appendChild(row);
+
+            totalAmount += parseFloat(invoice.netAmount.replace(/[^0-9.-]+/g, ""));
+        });
+
+        // Display total amount
+        document.getElementById('totalAmount').textContent = `₹ ${totalAmount.toFixed(2)}`;
+    </script>
 </body>
 </html>

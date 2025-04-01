@@ -29,8 +29,11 @@ export const sendEmail = async (to, subject, html, pdfBuffer = null) => {
       ];
     }
 
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully:", info.messageId);
+    return true;
   } catch (error) {
     console.error("Error sending email:", error);
+    throw error; // Re-throw to allow proper error handling
   }
 };

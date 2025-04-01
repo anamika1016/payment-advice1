@@ -93,24 +93,22 @@ export const fetchRecipientByName = createAsyncThunk(
 
 export const updateIncidentStatus = createAsyncThunk(
   "incidents/updateStatus",
-  async ({ id, status }, { rejectWithValue }) => {
+  async ({ id, status, invoiceHtml }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`/api/incidents/${id}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status }),
+      const response = await axios.patch(`/invoice/${id}/status`, {
+        status,
+        invoiceHtml,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to update status");
+      if (response.data.success) {
+        toast.success(response.data.message);
+        return response.data.data;
+      } else {
+        throw new Error(response.data.message || "Failed to update status");
       }
-
-      const data = await response.json();
-      return data;
     } catch (error) {
-      return rejectWithValue(error.message);
+      toast.error(error.response?.data?.message || error.message);
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
@@ -126,7 +124,7 @@ const initialState = {
     senderAccountNumber: "",
     amount: "",
     transactionDate: new Date().toISOString().split("T")[0],
-    invoices: []
+    invoices: [],
   },
   error: null,
 };

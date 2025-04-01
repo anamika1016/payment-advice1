@@ -55,11 +55,7 @@ const Payment = () => {
       setInvoiceTemplate(html);
     } catch (error) {
       console.error("Error loading invoice template:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load invoice template",
-      });
+      toast.error("Failed to load invoice template");
     }
   };
 
@@ -120,11 +116,7 @@ const Payment = () => {
       setInvoiceHtml(html);
       setIsPdfViewOpen(true);
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to generate invoice: " + error.message,
-      });
+      toast.error("Failed to generate invoice: " + error.message);
     }
   };
 
@@ -141,19 +133,12 @@ const Payment = () => {
 
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
 
-      toast({
-        title: "Email Sent",
-        description: `Invoice sent to ${incident.recipientEmail}`,
-      });
+      toast.success(`Invoice sent to ${incident.recipientEmail}`);
 
       return true;
     } catch (error) {
       console.error("Error sending invoice email:", error);
-      toast({
-        variant: "destructive",
-        title: "Email Failed",
-        description: "Failed to send invoice email: " + error.message,
-      });
+      toast.error("Failed to send invoice email: " + error.message);
       return false;
     } finally {
       setIsSending(false);
@@ -162,22 +147,36 @@ const Payment = () => {
 
   const handleStatusChange = async (id, status) => {
     if (status === "Approved" && selectedIncident) {
-      const emailSent = await sendInvoiceEmail(selectedIncident);
-      if (!emailSent) {
-        return;
+      try {
+        const html = generateInvoicePdf(selectedIncident);
+
+        // Update the status and send the invoice
+        dispatch(
+          updateIncidentStatus({
+            id,
+            status,
+            invoiceHtml: html,
+          })
+        );
+
+        closePdfView();
+
+        toast.success("The payment has been approved and invoice sent");
+      } catch (error) {
+        console.error("Error generating invoice:", error);
+        toast.error("Failed to generate invoice: " + error.message);
+      }
+    } else {
+      // Just update the status
+      dispatch(updateIncidentStatus({ id, status }));
+      closePdfView();
+
+      if (status === "Approved") {
+        toast.success("The payment has been approved");
+      } else {
+        toast.error("The payment has been rejected");
       }
     }
-
-    dispatch(updateIncidentStatus({ id, status }));
-    closePdfView();
-
-    toast({
-      title: status === "Approved" ? "Payment Approved" : "Payment Rejected",
-      description:
-        status === "Approved"
-          ? "The payment has been approved and invoice sent"
-          : "The payment has been rejected",
-    });
   };
 
   const getStatusBadge = (status) => {
