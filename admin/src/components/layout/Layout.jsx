@@ -9,9 +9,9 @@ const Layout = ({ children }) => {
       <main className="w-full h-[90%]">
         <SidebarTrigger />
         {children}
-      </main>
+      </main> 
     </SidebarProvider>
   );
-};
-
+}; 
+  
 export default Layout;

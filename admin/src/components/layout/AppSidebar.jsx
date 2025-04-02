@@ -64,6 +64,10 @@ export function AppSidebar() {
     }
   };
 
+  const isActiveRoute = (itemUrl) => {
+    return location.pathname.startsWith(itemUrl);
+  };
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -89,7 +93,7 @@ export function AppSidebar() {
                   key={item.title}
                   className={`flex items-center gap-3 p-3 rounded-lg transition-all
                     ${
-                      location.pathname === item.url
+                      isActiveRoute(item.url)
                         ? "bg-primary text-white font-bold"
                         : "hover:bg-gray-300 text-black"
                     }`}

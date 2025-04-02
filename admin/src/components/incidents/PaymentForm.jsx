@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import Layout from "@/components/layout/Layout";
 
 const PaymentForm = ({ incident, onClose }) => {
   const dispatch = useDispatch();
@@ -187,328 +188,357 @@ const PaymentForm = ({ incident, onClose }) => {
   };
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <Label htmlFor="paymentType" className="required-input">
-          Payment Type
-        </Label>
-        <Select
-          value={incidentData.paymentType}
-          onValueChange={(value) => onSelectChange("paymentType", value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select payment type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="nft">NFT</SelectItem>
-            <SelectItem value="upi">UPI</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+    <Layout>
+      <div className="container mx-auto p-6">
+        <h1
+          className="text-xl text-[#0E3B65] mb-4 uppercase"
+          style={{ fontFamily: "Mukta" }}>
+          Payments / Add Payment
+        </h1>
+        <div className="flex flex-col gap-8">
+          <div>
+            <Label htmlFor="paymentType" className="required-input">
+              Payment Type
+            </Label>
+            <Select
+              value={incidentData.paymentType}
+              onValueChange={(value) => onSelectChange("paymentType", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select payment type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="nft">NFT</SelectItem>
+                <SelectItem value="upi">UPI</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-      <div>
-        <Label htmlFor="utrNo" className="required-input">
-          UTR Number
-        </Label>
-        <Input
-          id="utrNo"
-          type="text"
-          value={incidentData.utrNo || ""}
-          onChange={onInputChange}
-          placeholder="Enter UTR Number"
-          required
-        />
-      </div>
+          <div>
+            <Label htmlFor="utrNo" className="required-input">
+              UTR Number
+            </Label>
+            <Input
+              id="utrNo"
+              type="text"
+              value={incidentData.utrNo || ""}
+              onChange={onInputChange}
+              placeholder="Enter UTR Number"
+              required
+            />
+          </div>
 
-      <div>
-        <Label htmlFor="bankName" className="required-input">
-          Bank Name
-        </Label>
-        <Input
-          id="bankName"
-          type="text"
-          value={incidentData.bankName || ""}
-          onChange={onInputChange}
-          placeholder="Enter Bank Name"
-          required
-        />
-      </div>
+          <div>
+            <Label htmlFor="bankName" className="required-input">
+              Bank Name
+            </Label>
+            <Input
+              id="bankName"
+              type="text"
+              value={incidentData.bankName || ""}
+              onChange={onInputChange}
+              placeholder="Enter Bank Name"
+              required
+            />
+          </div>
 
-      <div>
-        <Label htmlFor="senderAccountNumber" className="required-input">
-          Account Number
-        </Label>
-        <Input
-          id="senderAccountNumber"
-          type="text"
-          value={incidentData.senderAccountNumber || ""}
-          onChange={onInputChange}
-          placeholder="Enter Account Number"
-          required
-        />
-      </div>
+          <div>
+            <Label htmlFor="senderAccountNumber" className="required-input">
+              Account Number
+            </Label>
+            <Input
+              id="senderAccountNumber"
+              type="text"
+              value={incidentData.senderAccountNumber || ""}
+              onChange={onInputChange}
+              placeholder="Enter Account Number"
+              required
+            />
+          </div>
 
-      <div>
-        <Label htmlFor="amount" className="required-input">
-          Amount
-        </Label>
-        <Input
-          id="amount"
-          type="number"
-          step="0.01"
-          value={incidentData.amount || ""}
-          onChange={onInputChange}
-          placeholder="Enter Amount"
-          required
-        />
-      </div>
+          <div>
+            <Label htmlFor="amount" className="required-input">
+              Amount
+            </Label>
+            <Input
+              id="amount"
+              type="number"
+              step="0.01"
+              value={incidentData.amount || ""}
+              onChange={onInputChange}
+              placeholder="Enter Amount"
+              required
+            />
+          </div>
 
-      <div>
-        <Label htmlFor="transactionDate" className="required-input">
-          Transaction Date
-        </Label>
-        <Input
-          id="transactionDate"
-          type="date"
-          value={
-            incidentData.transactionDate
-              ? new Date(incidentData.transactionDate)
-                  .toISOString()
-                  .split("T")[0]
-              : new Date().toISOString().split("T")[0]
-          }
-          onChange={onInputChange}
-          required
-        />
-      </div>
+          <div>
+            <Label htmlFor="transactionDate" className="required-input">
+              Transaction Date
+            </Label>
+            <Input
+              id="transactionDate"
+              type="date"
+              value={
+                incidentData.transactionDate
+                  ? new Date(incidentData.transactionDate)
+                      .toISOString()
+                      .split("T")[0]
+                  : new Date().toISOString().split("T")[0]
+              }
+              onChange={onInputChange}
+              required
+            />
+          </div>
 
-      {/* Invoice Fields */}
-      <div>
-        <h3 className="text-lg font-semibold">Invoices</h3>
-        <div className="text-sm text-gray-500 mb-2">
-          Add one or more invoice details below
-        </div>
-
-        {(incidentData.invoices || []).map((invoice, index) => (
-          <div key={index} className="border p-4 rounded-lg shadow-sm mb-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor={`refNo_${index}`}>Reference Number</Label>
-                <Input
-                  id={`refNo_${index}`}
-                  type="text"
-                  value={invoice.refNo || ""}
-                  onChange={(e) =>
-                    handleInvoiceChange(index, "refNo", e.target.value)
-                  }
-                  placeholder="Enter Reference Number"
-                />
-              </div>
-
-              <div>
-                {/* Replace the recipient name input with the SearchResults component */}
-                <SearchResults
-                  id={`recipientName_${index}`}
-                  label="Recipient Name"
-                  items={recipientNames || []}
-                  value={invoice.recipientName || ""}
-                  onInputChange={(_, value) =>
-                    handleRecipientSearch(index, value)
-                  }
-                  onItemSelect={(field, value) =>
-                    handleRecipientSelect(index, field, value)
-                  }
-                  placeholder="Search for recipient..."
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor={`recipientEmail_${index}`}
-                  className="required-input"
-                >
-                  Recipient Email
-                </Label>
-                <Input
-                  id={`recipientEmail_${index}`}
-                  type="email"
-                  value={invoice.recipientEmail || ""}
-                  onChange={(e) =>
-                    handleInvoiceChange(index, "recipientEmail", e.target.value)
-                  }
-                  placeholder="Enter Recipient Email"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor={`recipientAddress_${index}`}>
-                  Bank Address
-                </Label>
-                <Input
-                  id={`recipientAddress_${index}`}
-                  type="text"
-                  value={invoice.recipientAddress || ""}
-                  onChange={(e) =>
-                    handleInvoiceChange(
-                      index,
-                      "recipientAddress",
-                      e.target.value
-                    )
-                  }
-                  placeholder="Enter Recipient Address"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor={`accountNumber_${index}`}
-                  className="required-input"
-                >
-                  Account Number
-                </Label>
-                <Input
-                  id={`accountNumber_${index}`}
-                  type="text"
-                  value={invoice.accountNumber || ""}
-                  onChange={(e) =>
-                    handleInvoiceChange(index, "accountNumber", e.target.value)
-                  }
-                  placeholder="Enter Account Number"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor={`ifscCode_${index}`} className="required-input">
-                  IFSC Code
-                </Label>
-                <Input
-                  id={`ifscCode_${index}`}
-                  type="text"
-                  value={invoice.ifscCode || ""}
-                  onChange={(e) =>
-                    handleInvoiceChange(index, "ifscCode", e.target.value)
-                  }
-                  placeholder="Enter IFSC Code"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor={`amount_${index}`} className="required-input">
-                  Amount
-                </Label>
-                <Input
-                  id={`amount_${index}`}
-                  type="number"
-                  step="0.01"
-                  value={invoice.amount || ""}
-                  onChange={(e) =>
-                    handleInvoiceChange(index, "amount", e.target.value)
-                  }
-                  placeholder="Enter Amount"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor={`invoiceNo_${index}`}>Invoice Number</Label>
-                <Input
-                  id={`invoiceNo_${index}`}
-                  type="text"
-                  value={invoice.invoiceNo || ""}
-                  onChange={(e) =>
-                    handleInvoiceChange(index, "invoiceNo", e.target.value)
-                  }
-                  placeholder="Enter Invoice Number"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor={`grossAmount_${index}`}>Gross Amount</Label>
-                <Input
-                  id={`grossAmount_${index}`}
-                  type="number"
-                  step="0.01"
-                  value={invoice.grossAmount || ""}
-                  onChange={(e) =>
-                    handleInvoiceChange(index, "grossAmount", e.target.value)
-                  }
-                  placeholder="Enter Gross Amount"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor={`tds_${index}`}>TDS</Label>
-                <Input
-                  id={`tds_${index}`}
-                  type="number"
-                  step="0.01"
-                  value={invoice.tds || ""}
-                  onChange={(e) =>
-                    handleInvoiceChange(index, "tds", e.target.value)
-                  }
-                  placeholder="Enter TDS"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor={`otherDeductions_${index}`}>
-                  Other Deductions
-                </Label>
-                <Input
-                  id={`otherDeductions_${index}`}
-                  type="number"
-                  step="0.01"
-                  value={invoice.otherDeductions || ""}
-                  onChange={(e) =>
-                    handleInvoiceChange(
-                      index,
-                      "otherDeductions",
-                      e.target.value
-                    )
-                  }
-                  placeholder="Enter Other Deductions"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor={`netAmount_${index}`}>Net Amount</Label>
-                <Input
-                  id={`netAmount_${index}`}
-                  type="number"
-                  step="0.01"
-                  value={invoice.netAmount || ""}
-                  onChange={(e) =>
-                    handleInvoiceChange(index, "netAmount", e.target.value)
-                  }
-                  placeholder="Enter Net Amount"
-                />
-              </div>
+          {/* Invoice Fields */}
+          <div>
+            <h3 className="text-lg font-semibold">Invoices</h3>
+            <div className="text-sm text-gray-500 mb-2">
+              Add one or more invoice details below
             </div>
 
+            {(incidentData.invoices || []).map((invoice, index) => (
+              <div key={index} className="border p-4 rounded-lg shadow-sm mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor={`refNo_${index}`}>Reference Number</Label>
+                    <Input
+                      id={`refNo_${index}`}
+                      type="text"
+                      value={invoice.refNo || ""}
+                      onChange={(e) =>
+                        handleInvoiceChange(index, "refNo", e.target.value)
+                      }
+                      placeholder="Enter Reference Number"
+                    />
+                  </div>
+
+                  <div>
+                    {/* Replace the recipient name input with the SearchResults component */}
+                    <SearchResults
+                      id={`recipientName_${index}`}
+                      label="Recipient Name"
+                      items={recipientNames || []}
+                      value={invoice.recipientName || ""}
+                      onInputChange={(_, value) =>
+                        handleRecipientSearch(index, value)
+                      }
+                      onItemSelect={(field, value) =>
+                        handleRecipientSelect(index, field, value)
+                      }
+                      placeholder="Search for recipient..."
+                    />
+                  </div>
+
+                  <div>
+                    <Label
+                      htmlFor={`recipientEmail_${index}`}
+                      className="required-input"
+                    >
+                      Recipient Email
+                    </Label>
+                    <Input
+                      id={`recipientEmail_${index}`}
+                      type="email"
+                      value={invoice.recipientEmail || ""}
+                      onChange={(e) =>
+                        handleInvoiceChange(
+                          index,
+                          "recipientEmail",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Enter Recipient Email"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`recipientAddress_${index}`}>
+                      Bank Address
+                    </Label>
+                    <Input
+                      id={`recipientAddress_${index}`}
+                      type="text"
+                      value={invoice.recipientAddress || ""}
+                      onChange={(e) =>
+                        handleInvoiceChange(
+                          index,
+                          "recipientAddress",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Enter Recipient Address"
+                    />
+                  </div>
+
+                  <div>
+                    <Label
+                      htmlFor={`accountNumber_${index}`}
+                      className="required-input"
+                    >
+                      Account Number
+                    </Label>
+                    <Input
+                      id={`accountNumber_${index}`}
+                      type="text"
+                      value={invoice.accountNumber || ""}
+                      onChange={(e) =>
+                        handleInvoiceChange(
+                          index,
+                          "accountNumber",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Enter Account Number"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label
+                      htmlFor={`ifscCode_${index}`}
+                      className="required-input"
+                    >
+                      IFSC Code
+                    </Label>
+                    <Input
+                      id={`ifscCode_${index}`}
+                      type="text"
+                      value={invoice.ifscCode || ""}
+                      onChange={(e) =>
+                        handleInvoiceChange(index, "ifscCode", e.target.value)
+                      }
+                      placeholder="Enter IFSC Code"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label
+                      htmlFor={`amount_${index}`}
+                      className="required-input"
+                    >
+                      Amount
+                    </Label>
+                    <Input
+                      id={`amount_${index}`}
+                      type="number"
+                      step="0.01"
+                      value={invoice.amount || ""}
+                      onChange={(e) =>
+                        handleInvoiceChange(index, "amount", e.target.value)
+                      }
+                      placeholder="Enter Amount"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`invoiceNo_${index}`}>Invoice Number</Label>
+                    <Input
+                      id={`invoiceNo_${index}`}
+                      type="text"
+                      value={invoice.invoiceNo || ""}
+                      onChange={(e) =>
+                        handleInvoiceChange(index, "invoiceNo", e.target.value)
+                      }
+                      placeholder="Enter Invoice Number"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`grossAmount_${index}`}>Gross Amount</Label>
+                    <Input
+                      id={`grossAmount_${index}`}
+                      type="number"
+                      step="0.01"
+                      value={invoice.grossAmount || ""}
+                      onChange={(e) =>
+                        handleInvoiceChange(
+                          index,
+                          "grossAmount",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Enter Gross Amount"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`tds_${index}`}>TDS</Label>
+                    <Input
+                      id={`tds_${index}`}
+                      type="number"
+                      step="0.01"
+                      value={invoice.tds || ""}
+                      onChange={(e) =>
+                        handleInvoiceChange(index, "tds", e.target.value)
+                      }
+                      placeholder="Enter TDS"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`otherDeductions_${index}`}>
+                      Other Deductions
+                    </Label>
+                    <Input
+                      id={`otherDeductions_${index}`}
+                      type="number"
+                      step="0.01"
+                      value={invoice.otherDeductions || ""}
+                      onChange={(e) =>
+                        handleInvoiceChange(
+                          index,
+                          "otherDeductions",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Enter Other Deductions"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`netAmount_${index}`}>Net Amount</Label>
+                    <Input
+                      id={`netAmount_${index}`}
+                      type="number"
+                      step="0.01"
+                      value={invoice.netAmount || ""}
+                      onChange={(e) =>
+                        handleInvoiceChange(index, "netAmount", e.target.value)
+                      }
+                      placeholder="Enter Net Amount"
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  className="mt-4 bg-red-500 hover:bg-red-600 text-white"
+                  onClick={() => removeInvoice(index)}
+                >
+                  Remove Invoice
+                </Button>
+              </div>
+            ))}
+
             <Button
-              className="mt-4 bg-red-500 hover:bg-red-600 text-white"
-              onClick={() => removeInvoice(index)}
+              className="mt-4 bg-green-500 hover:bg-green-600 text-white"
+              onClick={addInvoice}
             >
-              Remove Invoice
+              Add Invoice
             </Button>
           </div>
-        ))}
 
-        <Button
-          className="mt-4 bg-green-500 hover:bg-green-600 text-white"
-          onClick={addInvoice}
-        >
-          Add Invoice
-        </Button>
+          <div className="flex justify-end mt-4">
+            <Button onClick={handleSubmit}>
+              {incident ? "Update" : "Add"}
+            </Button>
+          </div>
+        </div>
       </div>
-
-      <div className="flex justify-end mt-4">
-        <Button onClick={handleSubmit}>{incident ? "Update" : "Add"}</Button>
-      </div>
-    </div>
+    </Layout>
   );
 };
 

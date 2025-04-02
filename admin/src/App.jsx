@@ -8,6 +8,7 @@ import SignInPage from "./pages/SignInPage";
 import SetUpPage from "./pages/SetupPage";
 import Registeration from "./pages/admin/Registeration";
 import Payment from "./pages/admin/Payment";
+import PaymentForm from "./components/incidents/PaymentForm"; // Import the PaymentForm
 
 export default function App() {
   return (
@@ -21,6 +22,9 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/registeration" element={<Registeration />} />
         <Route path="/payment" element={<Payment />} />
+        <Route path="/payment/add_payment" element={<PaymentForm />} />{" "}
+        <Route path="/payment/edit_payment" element={<PaymentForm />} />{" "}
+        {/* Add this new route */}
         <Route path="/settings" element={<Setting />} />
         <Route path="/profile" element={<Profile />} />
       </Route>

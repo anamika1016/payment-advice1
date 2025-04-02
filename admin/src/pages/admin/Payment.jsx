@@ -27,6 +27,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const Payment = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -39,6 +40,8 @@ const Payment = () => {
 
   const { incidents } = useSelector((state) => state.incidents);
   const dispatch = useDispatch();
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     dispatch(fetchIncidents());
@@ -189,8 +192,11 @@ const Payment = () => {
         return <Badge className="bg-yellow-500">Pending</Badge>;
     }
   };
-
-  return (
+  const handleAddPayment = () => {
+    navigate("/payment/add_payment");
+  };
+  
+  return(
     <Layout>
       <div className="container mx-auto p-6">
         <h1
@@ -201,9 +207,7 @@ const Payment = () => {
         </h1>
         <div className="flex flex-col items-center gap-10 w-[100%]">
           <div className="flex justify-end w-[100%]">
-            <Button onClick={() => openIncidentDialog(null)}>
-              New Payment
-            </Button>
+            <Button onClick={handleAddPayment}>New Payment</Button>
           </div>
           <div className="w-[100%] border rounded-lg shadow-md">
             <Table>
