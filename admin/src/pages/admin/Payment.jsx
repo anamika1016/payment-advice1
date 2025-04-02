@@ -87,30 +87,202 @@ const Payment = () => {
     closeDeleteConfirmation();
   };
 
+  // Modify your generateInvoicePdf function to include better debugging:
   const generateInvoicePdf = (incident) => {
     try {
       if (!invoiceTemplate) {
         throw new Error("Invoice template not loaded");
       }
 
+      console.log("Incident data to populate:", incident);
+      console.log("First invoice item:", incident.invoices?.[0]);
+
       let html = invoiceTemplate;
 
-      html = html
-        .replace("{{customer_name}}", incident.recipientName || "Customer")
-        .replace("{{invoice_number}}", incident.invoiceNo || "INV-000")
-        .replace("{{invoice_amount}}", `₹${incident.amount || "0.00"}`)
-        .replace("{{payment_date}}", incident.invoiceDate || "01/01/2025")
-        .replace("{{invoice_download_link}}", "#")
-        .replace("{{company_name}}", "Your Company")
-        .replace("{{company_email}}", "support@yourcompany.com");
+      // Format the current date
+      const today = new Date();
+      const formattedDate = today
+        .toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        })
+        .replace(/\//g, "-");
 
-      return html;
+      // Get the first invoice item (assuming there's at least one)
+      const invoiceItem = incident.invoices?.[0] || {};
+
+      // Calculate totals with additional safety checks
+      const totalGrossAmount =
+        incident.invoices?.reduce(
+          (sum, inv) => sum + Number(inv.grossAmount || 0),
+          0
+        ) || 0;
+
+      const totalTds =
+        incident.invoices?.reduce(
+          (sum, inv) => sum + Number(inv.tds || 0),
+          0
+        ) || 0;
+
+      const totalOtherDeductions =
+        incident.invoices?.reduce(
+          (sum, inv) => sum + Number(inv.otherDeductions || 0),
+          0
+        ) || 0;
+
+      const totalNetAmount =
+        incident.invoices?.reduce(
+          (sum, inv) => sum + Number(inv.netAmount || 0),
+          0
+        ) || 0;
+
+      // Add more granular logging to debug HTML replacements
+      console.log("Starting HTML replacements for invoice...");
+
+      // Create a test HTML string first to validate replacements work
+      const updatedHtml = html
+        .replace(/<p>Date<\/p>/g, `<p>Date: ${formattedDate}</p>`)
+        .replace(
+          /<p>Ref No\.<br><\/p>/g,
+          `<p>Ref No.: ${invoiceItem.refNo || "-"}<br></p>`
+        )
+        .replace(
+          /<p>To,<br><\/p>/g,
+          `<p>To,<br>${invoiceItem.recipientName || ""}<br>${
+            invoiceItem.recipientAddress || ""
+          }</p>`
+        );
+
+      console.log("First replacements completed");
+
+      // Continue with other replacements...
+      const finalHtml = updatedHtml
+        .replace(/Rs\. ------------------/g, `Rs. ${totalNetAmount.toFixed(2)}`)
+        .replace(
+          /Account No\.------------------/g,
+          `Account No. ${invoiceItem.accountNumber || "-"}`
+        )
+        .replace(
+          /IFSC Code ---------------/g,
+          `IFSC Code ${invoiceItem.ifscCode || "N/A"}`
+        )
+        .replace(
+          /UTR No\.---------------------/g,
+          `UTR No. ${invoiceItem.utrNo ? invoiceItem.utrNo : "N/A"}`
+        )
+        .replace(
+          /dated -------------/g,
+          `dated ${invoiceItem.invoiceDate || formattedDate}`
+        );
+
+      console.log("Second set of replacements completed");
+
+      let tableRows = "";
+      if (incident.invoices?.length) {
+        console.log(
+          `Building table rows for ${incident.invoices.length} invoices`
+        );
+        incident.invoices.forEach((inv, index) => {
+          console.log(`Processing invoice ${index}:`, inv);
+          tableRows += `
+          <tr>
+            <td>${inv.particulars || "-"}</td>
+            <td>${inv.invoiceNo || "-"}<br>${inv.invoiceDate || "-"}</td>
+            <td>₹${Number(inv.grossAmount || 0).toFixed(2)}</td>
+            <td>₹${Number(inv.tds || 0).toFixed(2)}</td>
+            <td>₹${Number(inv.otherDeductions || 0).toFixed(2)}</td>
+            <td>₹${Number(inv.netAmount || 0).toFixed(2)}</td>
+          </tr>
+        `;
+        });
+
+        // Add empty rows if needed
+        const emptyRowsNeeded = Math.max(0, 4 - incident.invoices.length);
+        for (let i = 0; i < emptyRowsNeeded; i++) {
+          tableRows += `
+          <tr>
+            <td></td><td></td><td></td><td></td><td></td><td></td>
+          </tr>
+        `;
+        }
+
+        // Add totals row
+        tableRows += `
+        <tr>
+          <th>TOTAL</th>
+          <td></td>
+          <td></td>
+          <td>₹${totalGrossAmount.toFixed(2)}</td>
+          <td>₹${totalTds.toFixed(2)}</td>
+          <td>₹${totalOtherDeductions.toFixed(2)}</td>
+        </tr>
+      `;
+      }
+
+      const tableStartIndex = finalHtml.indexOf("<table");
+      const tableEndIndex = finalHtml.indexOf("</table>") + 8;
+
+      if (tableStartIndex > -1 && tableEndIndex > tableStartIndex) {
+        const tableOpeningTag = finalHtml.substring(
+          tableStartIndex,
+          finalHtml.indexOf(">", tableStartIndex) + 1
+        );
+
+        const tableClosingTag = "</table>";
+
+        // Create new table content
+        const newTableContent = `${tableOpeningTag}
+        <thead>
+          <tr>
+            <th>Particulars</th>
+            <th>Invoice No/Date</th>
+            <th>Gross Amount</th>
+            <th>TDS</th>
+            <th>Other Deductions</th>
+            <th>Net Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      ${tableClosingTag}`;
+
+        // Replace the entire table
+        const resultHtml =
+          finalHtml.substring(0, tableStartIndex) +
+          newTableContent +
+          finalHtml.substring(tableEndIndex);
+
+        return resultHtml;
+      }
+
+      // Fallback to the regex approach if table not found
+      const result = finalHtml.replace(
+        /<table[\s\S]*?<\/table>/i,
+        `<table>
+        <thead>
+          <tr>
+            <th>Particulars</th>
+            <th>Invoice No/Date</th>
+            <th>Gross Amount</th>
+            <th>TDS</th>
+            <th>Other Deductions</th>
+            <th>Net Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>`
+      );
+
+      return result;
     } catch (error) {
-      console.error("Error generating invoice PDF:", error);
+      console.error("Error generating invoice HTML:", error);
       throw error;
     }
   };
-
   const handleShow = (incident) => {
     console.log("incident", incident);
     setSelectedIncident(incident);
@@ -195,8 +367,8 @@ const Payment = () => {
   const handleAddPayment = () => {
     navigate("/payment/add_payment");
   };
-  
-  return(
+
+  return (
     <Layout>
       <div className="container mx-auto p-6">
         <h1

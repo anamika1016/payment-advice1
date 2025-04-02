@@ -33,13 +33,11 @@ export const getInvoices = async (req, res) => {
   }
 };
 
-// Update invoice status and send email
 export const updateInvoiceStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, invoiceHtml } = req.body;
 
-    // Find the invoice
     const invoice = await PaymentInvoice.findById(id);
 
     if (!invoice) {
@@ -49,30 +47,24 @@ export const updateInvoiceStatus = async (req, res) => {
       });
     }
 
-    // Update status for all invoices in the payment
     for (let i = 0; i < invoice.invoices.length; i++) {
       invoice.invoices[i].status = status;
     }
 
     const updatedInvoice = await invoice.save();
 
-    // If status is "Approved", send email with invoice
     if (status === "Approved" && invoiceHtml) {
       try {
-        // Get all recipient emails
         const recipientEmails = invoice.invoices.map(
           (inv) => inv.recipientEmail
         );
 
-        // Create a subject line using invoice number if available
         const subject = `Invoice #${
           invoice.invoices[0]?.invoiceNo || "Invoice"
         } - Payment Approved`;
 
-        // Generate PDF buffer if needed (you might need to implement this part)
         const pdfBuffer = await generateInvoicePdf(invoiceHtml, invoice);
 
-        // Send email to all recipients
         await sendEmail(
           recipientEmails.join(", "),
           subject,
@@ -111,23 +103,160 @@ export const updateInvoiceStatus = async (req, res) => {
   }
 };
 
-// Helper function to generate PDF from HTML (implement based on your requirements)
-const generateInvoicePdf = async (invoiceHtml, invoice) => {
-  // You can use libraries like html-pdf, puppeteer, or jspdf to convert HTML to PDF
-  // This is a placeholder function - implement based on your requirements
+export const generateInvoicePdf = async (invoice) => {
+  try {
+    // Get file system module
+    const fs = await import("fs");
+    const path = await import("path");
 
-  // Example implementation (uncomment and adapt as needed):
-  /*
-  import puppeteer from 'puppeteer';
-  
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.setContent(invoiceHtml);
-  const pdfBuffer = await page.pdf({ format: 'A4' });
-  await browser.close();
-  return pdfBuffer;
-  */
+    // Read the HTML template
+    const templatePath = path.default.resolve("./public/pdf/template.html");
+    let html = fs.default.readFileSync(templatePath, "utf8");
 
-  // For now, return null if you don't need PDF attachment
-  return null;
+    // Format the current date
+    const today = new Date();
+    const formattedDate = today
+      .toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+      .replace(/\//g, "-");
+
+    // Get the first invoice item (assuming there's at least one)
+    const invoiceItem = invoice.invoices[0] || {};
+
+    // Calculate totals
+    const totalGrossAmount = invoice.invoices.reduce(
+      (sum, inv) => sum + Number(inv.grossAmount || 0),
+      0
+    );
+    const totalTds = invoice.invoices.reduce(
+      (sum, inv) => sum + Number(inv.tds || 0),
+      0
+    );
+    const totalOtherDeductions = invoice.invoices.reduce(
+      (sum, inv) => sum + Number(inv.otherDeductions || 0),
+      0
+    );
+    const totalNetAmount = invoice.invoices.reduce(
+      (sum, inv) => sum + Number(inv.netAmount || 0),
+      0
+    );
+
+    // Replace placeholders in the template
+    html = html
+      // Header information
+      .replace("<p>Date</p>", `<p>Date: ${formattedDate}</p>`)
+      .replace(
+        "<p>Ref No.<br></p>",
+        `<p>Ref No.: ${invoiceItem.refNo || "-"}<br></p>`
+      )
+      .replace(
+        "<p>To,<br></p>",
+        `<p>To,<br>${invoiceItem.recipientName || ""}<br>${
+          invoiceItem.recipientAddress || ""
+        }</p>`
+      )
+
+      // Payment details
+      .replace("Rs. ------------------", `Rs. ${totalNetAmount.toFixed(2)}`)
+      .replace(
+        "Account No.------------------",
+        `Account No. ${invoiceItem.accountNumber || "-"}`
+      )
+      .replace(
+        "IFSC Code ---------------",
+        `IFSC Code ${invoiceItem.ifscCode || "-"}`
+      )
+      .replace(
+        "UTR No.---------------------",
+        `UTR No. ${invoiceItem.utrNo || "-"}`
+      )
+      .replace(
+        "dated -------------",
+        `dated ${invoiceItem.invoiceDate || formattedDate}`
+      );
+
+    // Generate table rows dynamically
+    let tableRows = "";
+    invoice.invoices.forEach((inv) => {
+      tableRows += `
+        <tr>
+          <td>${inv.particulars || "-"}</td>
+          <td>${inv.invoiceNo || "-"}<br>${inv.invoiceDate || "-"}</td>
+          <td>${inv.rfdId || "-"}<br>${inv.rfdDate || "-"}</td>
+          <td>₹${Number(inv.grossAmount || 0).toFixed(2)}</td>
+          <td>₹${Number(inv.tds || 0).toFixed(2)}</td>
+          <td>₹${Number(inv.otherDeductions || 0).toFixed(2)}</td>
+          <td>₹${Number(inv.netAmount || 0).toFixed(2)}</td>
+        </tr>
+      `;
+    });
+
+    // Add empty rows if needed (to ensure we have at least 4 rows total)
+    const emptyRowsNeeded = Math.max(0, 4 - invoice.invoices.length);
+    for (let i = 0; i < emptyRowsNeeded; i++) {
+      tableRows += `
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      `;
+    }
+
+    // Add totals row
+    tableRows += `
+      <tr>
+        <th>TOTAL</th>
+        <td></td>
+        <td></td>
+        <td>₹${totalGrossAmount.toFixed(2)}</td>
+        <td>₹${totalTds.toFixed(2)}</td>
+        <td>₹${totalOtherDeductions.toFixed(2)}</td>
+        <td>₹${totalNetAmount.toFixed(2)}</td>
+      </tr>
+    `;
+
+    // Replace the table rows in the template
+    html = html.replace(
+      /<tr>\s*<td><\/td>\s*<td><\/td>\s*<td><\/td>\s*<td><\/td>\s*<td><\/td>\s*<td><\/td>\s*(<td><\/td>)?\s*<\/tr>(\s*<tr>\s*<td><\/td>\s*<td><\/td>\s*<td><\/td>\s*<td><\/td>\s*<td><\/td>\s*<td><\/td>\s*(<td><\/td>)?\s*<\/tr>)*\s*<tr>\s*<th>TOTAL<\/th>\s*<td><\/td>\s*<td><\/td>\s*<td><\/td>\s*<td><\/td>\s*<td><\/td>\s*(<td><\/td>)?\s*<\/tr>/s,
+      tableRows
+    );
+
+    // Launch a headless browser to render the HTML
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+    const page = await browser.newPage();
+
+    // Set the HTML content
+    await page.setContent(html, {
+      waitUntil: "networkidle0",
+    });
+
+    // Generate PDF
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: {
+        top: "10mm",
+        right: "10mm",
+        bottom: "10mm",
+        left: "10mm",
+      },
+    });
+
+    await browser.close();
+    return pdfBuffer;
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    throw new Error("Failed to generate PDF: " + error.message);
+  }
 };
