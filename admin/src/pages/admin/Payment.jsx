@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import InvoiceEditDialog from "@/components/incidents/InvoiceEditDialog";
 
 const Payment = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -37,6 +38,11 @@ const Payment = () => {
   const [invoiceHtml, setInvoiceHtml] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [invoiceTemplate, setInvoiceTemplate] = useState("");
+
+  // Add new state variables for the invoice edit dialog
+  const [isInvoiceEditDialogOpen, setIsInvoiceEditDialogOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedInvoiceIndex, setSelectedInvoiceIndex] = useState(null);
 
   const { incidents } = useSelector((state) => state.incidents);
   const dispatch = useDispatch();
@@ -67,6 +73,22 @@ const Payment = () => {
     setIsDialogOpen(true);
   };
 
+  // Add a new function to open the invoice edit dialog
+  const openInvoiceEditDialog = (incident, invoiceIndex = 0) => {
+    setSelectedIncident(incident);
+    setSelectedInvoice(incident); // Since the incident structure is flat in your table, use the same object
+    setSelectedInvoiceIndex(invoiceIndex);
+    setIsInvoiceEditDialogOpen(true);
+  };
+
+  // Add a function to close the invoice edit dialog
+  const closeInvoiceEditDialog = () => {
+    setIsInvoiceEditDialogOpen(false);
+    setSelectedIncident(null);
+    setSelectedInvoice(null);
+    setSelectedInvoiceIndex(null);
+  };
+
   const closeDialog = () => {
     setIsDialogOpen(false);
     setSelectedIncident(null);
@@ -87,15 +109,14 @@ const Payment = () => {
     closeDeleteConfirmation();
   };
 
-  // Modify your generateInvoicePdf function to include better debugging:
-  const generateInvoicePdf = (incident) => {
+  // The rest of your existing functions remain unchanged
+  const generateInvoicePdf = (invoice) => {
     try {
       if (!invoiceTemplate) {
         throw new Error("Invoice template not loaded");
       }
 
-      console.log("Incident data to populate:", incident);
-      console.log("First invoice item:", incident.invoices?.[0]);
+      console.log("Invoice data to populate:", invoice);
 
       let html = invoiceTemplate;
 
@@ -109,106 +130,53 @@ const Payment = () => {
         })
         .replace(/\//g, "-");
 
-      // Get the first invoice item (assuming there's at least one)
-      const invoiceItem = incident.invoices?.[0] || {};
+      // Assign safe default values
+      const totalGrossAmount = invoice.grossAmount || 0;
+      const totalTds = invoice.tds || 0;
+      const totalOtherDeductions = invoice.otherDeductions || 0;
+      const totalNetAmount = invoice.netAmount || 0;
 
-      // Calculate totals with additional safety checks
-      const totalGrossAmount =
-        incident.invoices?.reduce(
-          (sum, inv) => sum + Number(inv.grossAmount || 0),
-          0
-        ) || 0;
-
-      const totalTds =
-        incident.invoices?.reduce(
-          (sum, inv) => sum + Number(inv.tds || 0),
-          0
-        ) || 0;
-
-      const totalOtherDeductions =
-        incident.invoices?.reduce(
-          (sum, inv) => sum + Number(inv.otherDeductions || 0),
-          0
-        ) || 0;
-
-      const totalNetAmount =
-        incident.invoices?.reduce(
-          (sum, inv) => sum + Number(inv.netAmount || 0),
-          0
-        ) || 0;
-
-      // Add more granular logging to debug HTML replacements
-      console.log("Starting HTML replacements for invoice...");
-
-      // Create a test HTML string first to validate replacements work
+      // Replace invoice details in template
       const updatedHtml = html
         .replace(/<p>Date<\/p>/g, `<p>Date: ${formattedDate}</p>`)
         .replace(
           /<p>Ref No\.<br><\/p>/g,
-          `<p>Ref No.: ${invoiceItem.refNo || "-"}<br></p>`
+          `<p>Ref No.: ${invoice.refNo || "-"}<br></p>`
         )
         .replace(
           /<p>To,<br><\/p>/g,
-          `<p>To,<br>${invoiceItem.recipientName || ""}<br>${
-            invoiceItem.recipientAddress || ""
+          `<p>To,<br>${invoice.recipientName || ""}<br>${
+            invoice.recipientAddress || ""
           }</p>`
-        );
-
-      console.log("First replacements completed");
-
-      // Continue with other replacements...
-      const finalHtml = updatedHtml
+        )
         .replace(/Rs\. ------------------/g, `Rs. ${totalNetAmount.toFixed(2)}`)
         .replace(
           /Account No\.------------------/g,
-          `Account No. ${invoiceItem.accountNumber || "-"}`
+          `Account No. ${invoice.accountNumber || "-"}`
         )
         .replace(
           /IFSC Code ---------------/g,
-          `IFSC Code ${invoiceItem.ifscCode || "N/A"}`
+          `IFSC Code ${invoice.ifscCode || "N/A"}`
         )
         .replace(
           /UTR No\.---------------------/g,
-          `UTR No. ${invoiceItem.utrNo ? invoiceItem.utrNo : "N/A"}`
+          `UTR No. ${invoice.utrNo ? invoice.utrNo : "N/A"}`
         )
         .replace(
           /dated -------------/g,
-          `dated ${invoiceItem.invoiceDate || formattedDate}`
+          `dated ${invoice.invoiceDate || formattedDate}`
         );
 
-      console.log("Second set of replacements completed");
-
-      let tableRows = "";
-      if (incident.invoices?.length) {
-        console.log(
-          `Building table rows for ${incident.invoices.length} invoices`
-        );
-        incident.invoices.forEach((inv, index) => {
-          console.log(`Processing invoice ${index}:`, inv);
-          tableRows += `
-          <tr>
-            <td>${inv.particulars || "-"}</td>
-            <td>${inv.invoiceNo || "-"}<br>${inv.invoiceDate || "-"}</td>
-            <td>₹${Number(inv.grossAmount || 0).toFixed(2)}</td>
-            <td>₹${Number(inv.tds || 0).toFixed(2)}</td>
-            <td>₹${Number(inv.otherDeductions || 0).toFixed(2)}</td>
-            <td>₹${Number(inv.netAmount || 0).toFixed(2)}</td>
-          </tr>
-        `;
-        });
-
-        // Add empty rows if needed
-        const emptyRowsNeeded = Math.max(0, 4 - incident.invoices.length);
-        for (let i = 0; i < emptyRowsNeeded; i++) {
-          tableRows += `
-          <tr>
-            <td></td><td></td><td></td><td></td><td></td><td></td>
-          </tr>
-        `;
-        }
-
-        // Add totals row
-        tableRows += `
+      // Generate table rows for the invoice
+      const tableRows = `
+        <tr>
+          <td>${invoice.particulars || "-"}</td>
+          <td>${invoice.invoiceNo || "-"}<br>${invoice.invoiceDate || "-"}</td>
+          <td>₹${Number(totalGrossAmount).toFixed(2)}</td>
+          <td>₹${Number(totalTds).toFixed(2)}</td>
+          <td>₹${Number(totalOtherDeductions).toFixed(2)}</td>
+          <td>₹${Number(totalNetAmount).toFixed(2)}</td>
+        </tr>
         <tr>
           <th>TOTAL</th>
           <td></td>
@@ -218,71 +186,34 @@ const Payment = () => {
           <td>₹${totalOtherDeductions.toFixed(2)}</td>
         </tr>
       `;
-      }
 
-      const tableStartIndex = finalHtml.indexOf("<table");
-      const tableEndIndex = finalHtml.indexOf("</table>") + 8;
-
-      if (tableStartIndex > -1 && tableEndIndex > tableStartIndex) {
-        const tableOpeningTag = finalHtml.substring(
-          tableStartIndex,
-          finalHtml.indexOf(">", tableStartIndex) + 1
-        );
-
-        const tableClosingTag = "</table>";
-
-        // Create new table content
-        const newTableContent = `${tableOpeningTag}
-        <thead>
-          <tr>
-            <th>Particulars</th>
-            <th>Invoice No/Date</th>
-            <th>Gross Amount</th>
-            <th>TDS</th>
-            <th>Other Deductions</th>
-            <th>Net Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tableRows}
-        </tbody>
-      ${tableClosingTag}`;
-
-        // Replace the entire table
-        const resultHtml =
-          finalHtml.substring(0, tableStartIndex) +
-          newTableContent +
-          finalHtml.substring(tableEndIndex);
-
-        return resultHtml;
-      }
-
-      // Fallback to the regex approach if table not found
-      const result = finalHtml.replace(
+      // Replace the table content dynamically
+      const resultHtml = updatedHtml.replace(
         /<table[\s\S]*?<\/table>/i,
         `<table>
-        <thead>
-          <tr>
-            <th>Particulars</th>
-            <th>Invoice No/Date</th>
-            <th>Gross Amount</th>
-            <th>TDS</th>
-            <th>Other Deductions</th>
-            <th>Net Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${tableRows}
-        </tbody>
-      </table>`
+          <thead>
+            <tr>
+              <th>Particulars</th>
+              <th>Invoice No/Date</th>
+              <th>Gross Amount</th>
+              <th>TDS</th>
+              <th>Other Deductions</th>
+              <th>Net Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>`
       );
 
-      return result;
+      return resultHtml;
     } catch (error) {
       console.error("Error generating invoice HTML:", error);
       throw error;
     }
   };
+
   const handleShow = (incident) => {
     console.log("incident", incident);
     setSelectedIncident(incident);
@@ -301,49 +232,36 @@ const Payment = () => {
     setInvoiceHtml("");
   };
 
-  const sendInvoiceEmail = async (incident) => {
-    setIsSending(true);
-    try {
-      const html = generateInvoicePdf(incident);
-
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-
-      toast.success(`Invoice sent to ${incident.recipientEmail}`);
-
-      return true;
-    } catch (error) {
-      console.error("Error sending invoice email:", error);
-      toast.error("Failed to send invoice email: " + error.message);
-      return false;
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  const handleStatusChange = async (id, status) => {
+  const handleStatusChange = async (invoiceId, status) => {
     if (status === "Approved" && selectedIncident) {
       try {
+        setIsSending(true);
         const html = generateInvoicePdf(selectedIncident);
 
-        // Update the status and send the invoice
-        dispatch(
+        await dispatch(
           updateIncidentStatus({
-            id,
+            invoiceId: invoiceId,
             status,
             invoiceHtml: html,
           })
         );
 
+        setIsSending(false);
         closePdfView();
 
         toast.success("The payment has been approved and invoice sent");
       } catch (error) {
+        setIsSending(false);
         console.error("Error generating invoice:", error);
         toast.error("Failed to generate invoice: " + error.message);
       }
     } else {
-      // Just update the status
-      dispatch(updateIncidentStatus({ id, status }));
+      dispatch(
+        updateIncidentStatus({
+          invoiceId: invoiceId,
+          status,
+        })
+      );
       closePdfView();
 
       if (status === "Approved") {
@@ -364,6 +282,7 @@ const Payment = () => {
         return <Badge className="bg-yellow-500">Pending</Badge>;
     }
   };
+
   const handleAddPayment = () => {
     navigate("/payment/add_payment");
   };
@@ -402,69 +321,65 @@ const Payment = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {incidents.map((incident) =>
-                  incident.invoices.map((invoice, index) => (
-                    <TableRow key={invoice.refNo || index}>
-                      {/* Invoice Fields */}
-                      <TableCell>{invoice.refNo}</TableCell>
-                      <TableCell>{invoice.recipientName}</TableCell>
-                      <TableCell>{invoice.recipientEmail}</TableCell>
-                      <TableCell>{invoice.recipientAddress}</TableCell>
-                      <TableCell>{invoice.accountNumber}</TableCell>
-                      <TableCell>{invoice.ifscCode}</TableCell>
-                      <TableCell>{invoice.amount}</TableCell>
-                      <TableCell>{invoice.invoiceNo}</TableCell>
-                      <TableCell>{invoice.grossAmount}</TableCell>
-                      <TableCell>{invoice.tds}</TableCell>
-                      <TableCell>{invoice.otherDeductions}</TableCell>
-                      <TableCell>{invoice.netAmount}</TableCell>
-                      <TableCell>
-                        {getStatusBadge(invoice.status || "Pending")}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            variant="outline"
-                            className="px-2 py-0.5 text-xs border-gray-500 text-gray-500 hover:bg-gray-500 hover:text-white"
-                            size="sm"
-                            onClick={() => openIncidentDialog(incident)}
-                          >
-                            <FaEdit className="mr-2" /> Edit
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => openDeleteConfirmation(incident)}
-                          >
-                            <FaTrash className="mr-2" /> Delete
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="px-2 py-0.5 text-xs border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-white"
-                            size="sm"
-                            onClick={() => handleShow(incident)}
-                          >
-                            <FaEye className="mr-1" /> Show
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
+                {incidents.map((invoice, index) => (
+                  <TableRow key={invoice.refNo || index}>
+                    {/* Invoice Fields */}
+                    <TableCell>{invoice.refNo}</TableCell>
+                    <TableCell>{invoice.recipientName}</TableCell>
+                    <TableCell>{invoice.recipientEmail}</TableCell>
+                    <TableCell>{invoice.recipientAddress}</TableCell>
+                    <TableCell>{invoice.accountNumber}</TableCell>
+                    <TableCell>{invoice.ifscCode}</TableCell>
+                    <TableCell>{invoice.amount}</TableCell>
+                    <TableCell>{invoice.invoiceNo}</TableCell>
+                    <TableCell>{invoice.grossAmount}</TableCell>
+                    <TableCell>{invoice.tds}</TableCell>
+                    <TableCell>{invoice.otherDeductions}</TableCell>
+                    <TableCell>{invoice.netAmount}</TableCell>
+                    <TableCell>
+                      {getStatusBadge(invoice.status || "Pending")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          variant="outline"
+                          className="px-2 py-0.5 text-xs border-gray-500 text-gray-500 hover:bg-gray-500 hover:text-white"
+                          size="sm"
+                          onClick={() => openInvoiceEditDialog(invoice, 0)}
+                        >
+                          <FaEdit className="mr-2" /> Edit
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => openDeleteConfirmation(invoice)}
+                        >
+                          <FaTrash className="mr-2" /> Delete
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="px-2 py-0.5 text-xs border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-white"
+                          size="sm"
+                          onClick={() => handleShow(invoice)}
+                        >
+                          <FaEye className="mr-1" /> Show
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
 
-          <Dialog open={isDialogOpen} onOpenChange={closeDialog}>
-            <DialogContent className="w-[90vw] sm:w-[600px] h-auto max-h-[90vh] p-6 rounded-lg overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {selectedIncident ? "Edit Payment" : "New Payment"}
-                </DialogTitle>
-              </DialogHeader>
-              <PaymentForm incident={selectedIncident} onClose={closeDialog} />
-            </DialogContent>
-          </Dialog>
+          {/* Invoice Edit Dialog */}
+          <InvoiceEditDialog
+            isOpen={isInvoiceEditDialogOpen}
+            onClose={closeInvoiceEditDialog}
+            paymentId={selectedIncident?._id}
+            invoice={selectedInvoice}
+            invoiceIndex={selectedInvoiceIndex}
+          />
 
           <Dialog open={isPdfViewOpen} onOpenChange={closePdfView}>
             <DialogContent className="w-[90vw] sm:w-[1650px] h-auto max-h-[90vh] p-0 rounded-lg overflow-y-auto">
@@ -488,7 +403,9 @@ const Payment = () => {
                 )}
               </div>
 
+              {/* Modified condition to show buttons for both Pending and Rejected status */}
               {(selectedIncident?.status === "Pending" ||
+                selectedIncident?.status === "Rejected" ||
                 !selectedIncident?.status) && (
                 <DialogFooter className="flex justify-end p-4 bg-white border-t">
                   <Button
@@ -521,27 +438,6 @@ const Payment = () => {
                   </Button>
                 </DialogFooter>
               )}
-
-              {selectedIncident?.status === "Approved" && (
-                <DialogFooter className="flex justify-end p-4 bg-white border-t">
-                  <Button
-                    className="bg-blue-600 hover:bg-blue-700"
-                    onClick={() => sendInvoiceEmail(selectedIncident)}
-                    disabled={isSending}
-                  >
-                    {isSending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <FaEnvelope className="mr-2" /> Resend Invoice
-                      </>
-                    )}
-                  </Button>
-                </DialogFooter>
-              )}
             </DialogContent>
           </Dialog>
 
@@ -555,7 +451,7 @@ const Payment = () => {
               </DialogHeader>
               <p>
                 Are you sure you want to delete the payment for{" "}
-                <strong>{selectedIncident?.recipient_name}</strong>?
+                <strong>{selectedIncident?.recipientName}</strong>?
               </p>
               <div className="flex justify-end space-x-2 mt-4">
                 <Button variant="outline" onClick={closeDeleteConfirmation}>

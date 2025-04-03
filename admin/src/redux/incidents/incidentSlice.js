@@ -43,7 +43,7 @@ export const updateIncident = createAsyncThunk(
   async ({ id, incidentData }, { rejectWithValue }) => {
     try {
       const { user } = getUserData();
-      const response = await axios.put(`/incident/${id}`, {
+      const response = await axios.put(`/invoice/${id}`, {
         ...incidentData,
         userId: user.id,
       });
@@ -63,7 +63,7 @@ export const deleteIncident = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const { user } = getUserData();
-      const response = await axios.delete(`/incident/${id}`, {
+      const response = await axios.delete(`/invoice/${id}`, {
         params: { userId: user.id },
       });
       if (response.data.success) {
@@ -93,9 +93,9 @@ export const fetchRecipientByName = createAsyncThunk(
 
 export const updateIncidentStatus = createAsyncThunk(
   "incidents/updateStatus",
-  async ({ id, status, invoiceHtml }, { rejectWithValue }) => {
+  async ({ invoiceId, status, invoiceHtml }, { rejectWithValue }) => {
     try {
-      const response = await axios.patch(`/invoice/${id}/status`, {
+      const response = await axios.patch(`/invoice/${invoiceId}/status`, {
         status,
         invoiceHtml,
       });
