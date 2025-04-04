@@ -38,6 +38,8 @@ const Payment = () => {
   const [invoiceHtml, setInvoiceHtml] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [invoiceTemplate, setInvoiceTemplate] = useState("");
+  const [logoImage, setLogoImage] = useState(null);
+  const [paplImage, setPaplImage] = useState(null);
 
   // Add new state variables for the invoice edit dialog
   const [isInvoiceEditDialogOpen, setIsInvoiceEditDialogOpen] = useState(false);
@@ -52,7 +54,42 @@ const Payment = () => {
   useEffect(() => {
     dispatch(fetchIncidents());
     fetchInvoiceTemplate();
+    loadImages();
   }, [dispatch]);
+
+  // New function to load and encode images
+  const loadImages = async () => {
+    try {
+      // Load logo image
+      const logoResponse = await fetch("/img/logo.jpg");
+      if (logoResponse.ok) {
+        const logoBlob = await logoResponse.blob();
+        const logoReader = new FileReader();
+        logoReader.onloadend = () => {
+          setLogoImage(logoReader.result);
+        };
+        logoReader.readAsDataURL(logoBlob);
+      } else {
+        console.error("Failed to load logo.jpg");
+      }
+
+      // Load papl image
+      const paplResponse = await fetch("/img/papl.png");
+      if (paplResponse.ok) {
+        const paplBlob = await paplResponse.blob();
+        const paplReader = new FileReader();
+        paplReader.onloadend = () => {
+          setPaplImage(paplReader.result);
+        };
+        paplReader.readAsDataURL(paplBlob);
+      } else {
+        console.error("Failed to load papl.png");
+      }
+    } catch (error) {
+      console.error("Error loading images:", error);
+      toast.error("Failed to load images for invoice");
+    }
+  };
 
   const fetchInvoiceTemplate = async () => {
     try {
@@ -109,7 +146,6 @@ const Payment = () => {
     closeDeleteConfirmation();
   };
 
-  // The rest of your existing functions remain unchanged
   const generateInvoicePdf = (invoice) => {
     try {
       if (!invoiceTemplate) {
@@ -120,7 +156,16 @@ const Payment = () => {
 
       let html = invoiceTemplate;
 
-      // Format the current date
+      if (logoImage) {
+        html = html.replace(/src=["'].*?logo\.jpg["']/g, `src="${logoImage}"`);
+        html = html.replace(/src=["'].*?logo\.png["']/g, `src="${logoImage}"`);
+      }
+
+      if (paplImage) {
+        html = html.replace(/src=["'].*?papl\.png["']/g, `src="${paplImage}"`);
+        html = html.replace(/src=["'].*?papl\.jpg["']/g, `src="${paplImage}"`);
+      }
+
       const today = new Date();
       const formattedDate = today
         .toLocaleDateString("en-IN", {
@@ -130,14 +175,18 @@ const Payment = () => {
         })
         .replace(/\//g, "-");
 
-      // Assign safe default values
+      const invoiceDate = invoice.invoiceDate || formattedDate;
+
       const totalGrossAmount = invoice.grossAmount || 0;
       const totalTds = invoice.tds || 0;
       const totalOtherDeductions = invoice.otherDeductions || 0;
       const totalNetAmount = invoice.netAmount || 0;
 
-      // Replace invoice details in template
-      const updatedHtml = html
+      let updatedHtml = html
+        .replace(
+          /Invoice No\/Date/g,
+          `Invoice No: ${invoice.invoiceNo || "-"} / Date: ${invoiceDate}`
+        )
         .replace(/<p>Date<\/p>/g, `<p>Date: ${formattedDate}</p>`)
         .replace(
           /<p>Ref No\.<br><\/p>/g,
@@ -149,65 +198,93 @@ const Payment = () => {
             invoice.recipientAddress || ""
           }</p>`
         )
-        .replace(/Rs\. ------------------/g, `Rs. ${totalNetAmount.toFixed(2)}`)
+        .replace(/Rs\.\s*-+/g, `Rs. ${totalNetAmount.toFixed(2)}`)
         .replace(
-          /Account No\.------------------/g,
+          /Account No\.\s*-+/g,
           `Account No. ${invoice.accountNumber || "-"}`
         )
+        .replace(/IFSC Code\s*-+/g, `IFSC Code ${invoice.ifscCode || "N/A"}`)
         .replace(
-          /IFSC Code ---------------/g,
-          `IFSC Code ${invoice.ifscCode || "N/A"}`
-        )
-        .replace(
-          /UTR No\.---------------------/g,
+          /UTR No\.\s*-+/g,
           `UTR No. ${invoice.utrNo ? invoice.utrNo : "N/A"}`
         )
-        .replace(
-          /dated -------------/g,
-          `dated ${invoice.invoiceDate || formattedDate}`
-        );
+        .replace(/dated\s*-+/g, `dated ${invoiceDate}`);
 
-      // Generate table rows for the invoice
-      const tableRows = `
-        <tr>
-          <td>${invoice.particulars || "-"}</td>
-          <td>${invoice.invoiceNo || "-"}<br>${invoice.invoiceDate || "-"}</td>
-          <td>₹${Number(totalGrossAmount).toFixed(2)}</td>
-          <td>₹${Number(totalTds).toFixed(2)}</td>
-          <td>₹${Number(totalOtherDeductions).toFixed(2)}</td>
-          <td>₹${Number(totalNetAmount).toFixed(2)}</td>
-        </tr>
-        <tr>
-          <th>TOTAL</th>
-          <td></td>
-          <td></td>
-          <td>₹${totalGrossAmount.toFixed(2)}</td>
-          <td>₹${totalTds.toFixed(2)}</td>
-          <td>₹${totalOtherDeductions.toFixed(2)}</td>
-        </tr>
+      let processedHtml = updatedHtml;
+
+      const tableHtml = `
+      <table style="width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid black;">
+        <thead>
+          <tr>
+            <th style="border: 1px solid black; padding: 8px; text-align: left;">Particulars</th>
+            <th style="border: 1px solid black; padding: 8px; text-align: left;">Invoice No/Date</th>
+            <th style="border: 1px solid black; padding: 8px; text-align: right;">Gross Amount</th>
+            <th style="border: 1px solid black; padding: 8px; text-align: right;">TDS</th>
+            <th style="border: 1px solid black; padding: 8px; text-align: right;">Other Deductions</th>
+            <th style="border: 1px solid black; padding: 8px; text-align: right;">Net Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="border: 1px solid black; padding: 8px;">${
+              invoice.particulars || "-"
+            }</td>
+            <td style="border: 1px solid black; padding: 8px;">
+              ${invoice.invoiceNo || "-"}<br>
+              ${invoiceDate} <!-- Use the updated invoiceDate here -->
+            </td>
+            <td style="border: 1px solid black; padding: 8px; text-align: right;">₹${(
+              totalGrossAmount || 0
+            ).toFixed(2)}</td>
+            <td style="border: 1px solid black; padding: 8px; text-align: right;">₹${(
+              totalTds || 0
+            ).toFixed(2)}</td>
+            <td style="border: 1px solid black; padding: 8px; text-align: right;">₹${(
+              totalOtherDeductions || 0
+            ).toFixed(2)}</td>
+            <td style="border: 1px solid black; padding: 8px; text-align: right;">₹${(
+              totalNetAmount || 0
+            ).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td style="border: 1px solid black; padding: 8px; font-weight: bold;" colspan="2">TOTAL</td>
+            <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">₹${(
+              totalGrossAmount || 0
+            ).toFixed(2)}</td>
+            <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">₹${(
+              totalTds || 0
+            ).toFixed(2)}</td>
+            <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">₹${(
+              totalOtherDeductions || 0
+            ).toFixed(2)}</td>
+            <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">₹${(
+              totalNetAmount || 0
+            ).toFixed(2)}</td>
+          </tr>
+        </tbody>
+      </table>
       `;
 
-      // Replace the table content dynamically
-      const resultHtml = updatedHtml.replace(
-        /<table[\s\S]*?<\/table>/i,
-        `<table>
-          <thead>
-            <tr>
-              <th>Particulars</th>
-              <th>Invoice No/Date</th>
-              <th>Gross Amount</th>
-              <th>TDS</th>
-              <th>Other Deductions</th>
-              <th>Net Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tableRows}
-          </tbody>
-        </table>`
-      );
+      if (processedHtml.includes("<!-- TABLE_PLACEHOLDER -->")) {
+        processedHtml = processedHtml.replace(
+          "<!-- TABLE_PLACEHOLDER -->",
+          tableHtml
+        );
+      } else {
+        processedHtml = processedHtml.replace(
+          /<table[\s\S]*?<\/table>/i,
+          tableHtml
+        );
+        if (!processedHtml.includes(tableHtml)) {
+          processedHtml = processedHtml.replace(
+            "</body>",
+            tableHtml + "</body>"
+          );
+        }
+      }
 
-      return resultHtml;
+      console.log("Final HTML with table:", processedHtml);
+      return processedHtml;
     } catch (error) {
       console.error("Error generating invoice HTML:", error);
       throw error;

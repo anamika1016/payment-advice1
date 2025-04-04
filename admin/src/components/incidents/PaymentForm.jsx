@@ -355,7 +355,7 @@ const PaymentForm = ({ incident, onClose }) => {
 
                   <div>
                     <Label htmlFor={`recipientAddress_${index}`}>
-                      Bank Address
+                      Address
                     </Label>
                     <Input
                       id={`recipientAddress_${index}`}

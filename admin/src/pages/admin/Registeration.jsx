@@ -124,7 +124,7 @@ const Registeration = () => {
                   <TableHead>Bank Name</TableHead>
                   <TableHead>Account Number</TableHead>
                   <TableHead>IFSC Code</TableHead>
-                  <TableHead>Bank Address</TableHead>
+                  <TableHead>Address</TableHead>
                   <TableHead>State</TableHead>
                   <TableHead>District</TableHead>
                   <TableHead>Type</TableHead>

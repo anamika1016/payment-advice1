@@ -138,7 +138,7 @@ const InvoiceEditDialog = ({
           </div>
 
           <div>
-            <Label htmlFor="recipientAddress">Bank Address</Label>
+            <Label htmlFor="recipientAddress">Address</Label>
             <Input
               id="recipientAddress"
               type="text"

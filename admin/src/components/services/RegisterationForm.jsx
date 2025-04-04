@@ -137,14 +137,14 @@ const RegisterationForm = ({ service, onClose }) => {
       </div>
       <div>
         <Label htmlFor="bankAddress" className="required-input">
-          Bank Address
+          Address
         </Label>
         <Input
           id="bankAddress"
           type="text"
           value={serviceData.bankAddress}
           onChange={onInputChange}
-          placeholder="Enter Bank Address"
+          placeholder="Enter Address"
           required
         />
       </div>
