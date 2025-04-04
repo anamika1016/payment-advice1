@@ -19,13 +19,14 @@ import {
   SelectValue,
 } from "../ui/select";
 import Layout from "@/components/layout/Layout";
+import { useNavigate } from "react-router-dom";
 
 const PaymentForm = ({ incident, onClose }) => {
   const dispatch = useDispatch();
   const { incidentData, recipientNames } = useSelector(
     (state) => state.incidents
   );
-
+  const navigate = useNavigate();
   useEffect(() => {
     if (incident) {
       const formattedIncident = {
@@ -101,6 +102,7 @@ const PaymentForm = ({ incident, onClose }) => {
     } else {
       dispatch(addIncident(dataToSubmit));
     }
+    navigate("/payment");
     onClose();
   };
 
@@ -192,7 +194,8 @@ const PaymentForm = ({ incident, onClose }) => {
       <div className="container mx-auto p-6">
         <h1
           className="text-xl text-[#0E3B65] mb-4 uppercase"
-          style={{ fontFamily: "Mukta" }}>
+          style={{ fontFamily: "Mukta" }}
+        >
           Payments / Add Payment
         </h1>
         <div className="flex flex-col gap-8">
@@ -258,7 +261,7 @@ const PaymentForm = ({ incident, onClose }) => {
 
           <div>
             <Label htmlFor="amount" className="required-input">
-              Amount
+              Total Amount
             </Label>
             <Input
               id="amount"
@@ -354,9 +357,7 @@ const PaymentForm = ({ incident, onClose }) => {
                   </div>
 
                   <div>
-                    <Label htmlFor={`recipientAddress_${index}`}>
-                      Address
-                    </Label>
+                    <Label htmlFor={`recipientAddress_${index}`}>Address</Label>
                     <Input
                       id={`recipientAddress_${index}`}
                       type="text"

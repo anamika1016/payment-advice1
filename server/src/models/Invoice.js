@@ -29,6 +29,11 @@ const PaymentInvoiceSchema = new mongoose.Schema({
   amount: { type: Number, required: true },
   transactionDate: { type: Date, required: true },
   invoices: { type: [InvoiceSchema], required: true },
+  company: {
+    type: String,
+    enum: ["asa", "papl"],
+    required: true,
+  },
 });
 
 const PaymentInvoice = mongoose.model("PaymentInvoice", PaymentInvoiceSchema);

@@ -4,8 +4,18 @@ import { pdfGenerate } from "../utils/pdfGenerator.js";
 
 export const createInvoice = async (req, res) => {
   try {
-    const newInvoice = new PaymentInvoice(req.body);
+    // Get the company from the authenticated user
+    const { company } = req.user;
+    
+    // Add company to the invoice data
+    const invoiceData = {
+      ...req.body,
+      company
+    };
+    
+    const newInvoice = new PaymentInvoice(invoiceData);
     const savedInvoice = await newInvoice.save();
+    
     res.status(201).send({
       success: true,
       message: "Invoice created successfully",
@@ -23,9 +33,13 @@ export const createInvoice = async (req, res) => {
 
 export const getInvoices = async (req, res) => {
   try {
-    const invoices = await PaymentInvoice.find().select("invoices"); // Fetch only the invoices array
+    // Get the company from the authenticated user
+    const { company } = req.user;
+    
+    // Filter invoices by company
+    const invoices = await PaymentInvoice.find({ company }).select("invoices");
 
-    const allInvoices = invoices.flatMap((doc) => doc.invoices); // Flatten the array
+    const allInvoices = invoices.flatMap((doc) => doc.invoices);
 
     res.status(200).send({ success: true, data: allInvoices });
   } catch (error) {
@@ -41,9 +55,10 @@ export const editInvoice = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    const { company } = req.user;
 
     const updatedInvoice = await PaymentInvoice.findOneAndUpdate(
-      { "invoices._id": id },
+      { "invoices._id": id, company },
       { $set: { "invoices.$": updateData } },
       { new: true }
     );
@@ -71,9 +86,10 @@ export const editInvoice = async (req, res) => {
 export const deleteInvoice = async (req, res) => {
   try {
     const { id } = req.params;
+    const { company } = req.user;
 
     const updatedInvoice = await PaymentInvoice.findOneAndUpdate(
-      { "invoices._id": id },
+      { "invoices._id": id, company },
       { $pull: { invoices: { _id: id } } },
       { new: true }
     );
@@ -101,8 +117,9 @@ export const deleteInvoice = async (req, res) => {
 
 export const updateInvoiceStatus = async (req, res) => {
   try {
-    const {invoiceId} = req.params;
+    const { invoiceId } = req.params;
     const { status, invoiceHtml } = req.body;
+    const { company } = req.user;
 
     if (!invoiceId) {
       return res.status(400).json({
@@ -111,7 +128,10 @@ export const updateInvoiceStatus = async (req, res) => {
       });
     }
 
-    const paymentInvoice = await PaymentInvoice.findOne({ "invoices._id": invoiceId });
+    const paymentInvoice = await PaymentInvoice.findOne({ 
+      "invoices._id": invoiceId,
+      company
+    });
 
     if (!paymentInvoice) {
       return res.status(404).json({
@@ -173,4 +193,3 @@ export const updateInvoiceStatus = async (req, res) => {
     });
   }
 };
-

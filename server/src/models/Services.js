@@ -12,6 +12,11 @@ const serviceSchema = new mongoose.Schema(
     state: { type: String, trim: true },
     district: { type: String, trim: true },
     type: { type: String, trim: true },
+    company: {
+      type: String,
+      enum: ["asa", "papl"],
+      required: true
+    },
   },
   { timestamps: true }
 );
