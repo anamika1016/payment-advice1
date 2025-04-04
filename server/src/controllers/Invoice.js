@@ -1,21 +1,25 @@
 import PaymentInvoice from "../models/Invoice.js";
 import { sendEmail } from "../utils/mailer.js";
 import { pdfGenerate } from "../utils/pdfGenerator.js";
+import util from "util";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
 export const createInvoice = async (req, res) => {
   try {
     // Get the company from the authenticated user
     const { company } = req.user;
-    
+
     // Add company to the invoice data
     const invoiceData = {
       ...req.body,
-      company
+      company,
     };
-    
+
     const newInvoice = new PaymentInvoice(invoiceData);
     const savedInvoice = await newInvoice.save();
-    
+
     res.status(201).send({
       success: true,
       message: "Invoice created successfully",
@@ -35,7 +39,7 @@ export const getInvoices = async (req, res) => {
   try {
     // Get the company from the authenticated user
     const { company } = req.user;
-    
+
     // Filter invoices by company
     const invoices = await PaymentInvoice.find({ company }).select("invoices");
 
@@ -114,7 +118,6 @@ export const deleteInvoice = async (req, res) => {
   }
 };
 
-
 export const updateInvoiceStatus = async (req, res) => {
   try {
     const { invoiceId } = req.params;
@@ -128,9 +131,9 @@ export const updateInvoiceStatus = async (req, res) => {
       });
     }
 
-    const paymentInvoice = await PaymentInvoice.findOne({ 
+    const paymentInvoice = await PaymentInvoice.findOne({
       "invoices._id": invoiceId,
-      company
+      company,
     });
 
     if (!paymentInvoice) {
@@ -158,10 +161,26 @@ export const updateInvoiceStatus = async (req, res) => {
           throw new Error("Recipient email not found for this invoice.");
         }
 
-        const subject = `Invoice #${targetInvoice.invoiceNo || "Invoice"} - Payment Approved`;
+        const readFile = util.promisify(fs.readFile);
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = dirname(__filename);
+        const emailTemplatePath = join(
+          __dirname,
+          "../templates/paymentInvoicePdf.html"
+        );
+        const emailTemplate = await readFile(emailTemplatePath, "utf-8");
+
+        const subject = `Invoice #${
+          targetInvoice.invoiceNo || "Invoice"
+        } - Payment Approved`;
         const pdfBuffer = await pdfGenerate(invoiceHtml);
 
-        await sendEmail(targetInvoice.recipientEmail, subject, invoiceHtml, pdfBuffer);
+        await sendEmail(
+          targetInvoice.recipientEmail,
+          subject,
+          emailTemplate,
+          pdfBuffer
+        );
 
         return res.status(200).json({
           success: true,
