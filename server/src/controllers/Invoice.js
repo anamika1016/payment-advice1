@@ -164,10 +164,7 @@ export const updateInvoiceStatus = async (req, res) => {
         const readFile = util.promisify(fs.readFile);
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = dirname(__filename);
-        const emailTemplatePath = join(
-          __dirname,
-          "../templates/paymentInvoicePdf.html"
-        );
+        const emailTemplatePath = join(__dirname, "../templates/invoice.html");
         const emailTemplate = await readFile(emailTemplatePath, "utf-8");
 
         const subject = `Invoice #${

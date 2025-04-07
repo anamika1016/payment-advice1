@@ -226,7 +226,7 @@ const Payment = () => {
         </thead>
         <tbody>
           <tr>
-            <td style="border: 1px solid black; padding: 8px; width: 100%">${
+            <td style="border: 1px solid black; padding: 8px;">${
               invoice.particulars || "-"
             }</td>
             <td style="border: 1px solid black; padding: 8px;">
