@@ -5,6 +5,7 @@ const InvoiceSchema = new mongoose.Schema({
   recipientName: { type: String, trim: true, required: true },
   recipientEmail: { type: String, trim: true, required: true },
   recipientAddress: { type: String, trim: true },
+  phone: { type: String, trim: true },
   accountNumber: { type: String, trim: true, required: true },
   ifscCode: { type: String, trim: true, required: true },
   amount: { type: Number, required: true },
@@ -26,7 +27,7 @@ const PaymentInvoiceSchema = new mongoose.Schema({
   utrNo: { type: String, trim: true, required: true },
   bankName: { type: String, trim: true, required: true },
   senderAccountNumber: { type: String, trim: true, required: true },
-  amount: { type: Number, required: true },
+  amount: { type: Number },
   transactionDate: { type: Date, required: true },
   invoices: { type: [InvoiceSchema], required: true },
   company: {

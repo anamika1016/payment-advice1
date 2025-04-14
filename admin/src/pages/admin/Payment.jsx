@@ -1,6 +1,13 @@
 import Layout from "@/components/layout/Layout";
 import React, { useEffect, useState } from "react";
-import { FaCheck, FaEdit, FaEye, FaTrash, FaEnvelope } from "react-icons/fa";
+import {
+  FaCheck,
+  FaEdit,
+  FaEye,
+  FaTrash,
+  FaEnvelope,
+  FaSearch,
+} from "react-icons/fa";
 import {
   Table,
   TableBody,
@@ -10,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +48,7 @@ const Payment = () => {
   const [invoiceTemplate, setInvoiceTemplate] = useState("");
   const [logoImage, setLogoImage] = useState(null);
   const [paplImage, setPaplImage] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Add new state variables for the invoice edit dialog
   const [isInvoiceEditDialogOpen, setIsInvoiceEditDialogOpen] = useState(false);
@@ -364,20 +373,59 @@ const Payment = () => {
     navigate("/payment/add_payment");
   };
 
+  // Filter the incidents based on search term
+  const filteredIncidents = incidents.filter((invoice) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      (invoice.refNo?.toLowerCase() || "").includes(searchLower) ||
+      (invoice.recipientName?.toLowerCase() || "").includes(searchLower) ||
+      (invoice.recipientEmail?.toLowerCase() || "").includes(searchLower) ||
+      (invoice.recipientAddress?.toLowerCase() || "").includes(searchLower) ||
+      (invoice.accountNumber?.toString().toLowerCase() || "").includes(
+        searchLower
+      ) ||
+      (invoice.ifscCode?.toLowerCase() || "").includes(searchLower) ||
+      (invoice.amount?.toString().toLowerCase() || "").includes(searchLower) ||
+      (invoice.invoiceNo?.toLowerCase() || "").includes(searchLower) ||
+      (invoice.grossAmount?.toString().toLowerCase() || "").includes(
+        searchLower
+      ) ||
+      (invoice.netAmount?.toString().toLowerCase() || "").includes(
+        searchLower
+      ) ||
+      (invoice.status?.toLowerCase() || "").includes(searchLower)
+    );
+  });
+
   return (
     <Layout>
       <div className="container mx-auto p-6">
-        <h1
-          className="text-xl text-[#0E3B65] mb-4 uppercase"
-          style={{ fontFamily: "Mukta" }}
-        >
-          Payments
-        </h1>
-        <div className="flex flex-col items-center gap-10 w-[100%]">
-          <div className="flex justify-end w-[100%]">
+        <div className="flex justify-between items-center mb-6">
+          <h1
+            className="text-xl text-[#0E3B65] uppercase"
+            style={{ fontFamily: "Mukta" }}
+          >
+            Payments
+          </h1>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Search payments..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 w-64 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center gap-10 w-full">
+          <div className="flex justify-end w-full">
             <Button onClick={handleAddPayment}>New Payment</Button>
           </div>
-          <div className="w-[100%] border rounded-lg shadow-md">
+          <div className="w-full border rounded-lg shadow-md">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -398,53 +446,61 @@ const Payment = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {incidents.map((invoice, index) => (
-                  <TableRow key={invoice.refNo || index}>
-                    {/* Invoice Fields */}
-                    <TableCell>{invoice.refNo}</TableCell>
-                    <TableCell>{invoice.recipientName}</TableCell>
-                    <TableCell>{invoice.recipientEmail}</TableCell>
-                    <TableCell>{invoice.recipientAddress}</TableCell>
-                    <TableCell>{invoice.accountNumber}</TableCell>
-                    <TableCell>{invoice.ifscCode}</TableCell>
-                    <TableCell>{invoice.amount}</TableCell>
-                    <TableCell>{invoice.invoiceNo}</TableCell>
-                    <TableCell>{invoice.grossAmount}</TableCell>
-                    <TableCell>{invoice.tds}</TableCell>
-                    <TableCell>{invoice.otherDeductions}</TableCell>
-                    <TableCell>{invoice.netAmount}</TableCell>
-                    <TableCell>
-                      {getStatusBadge(invoice.status || "Pending")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button
-                          variant="outline"
-                          className="px-2 py-0.5 text-xs border-gray-500 text-gray-500 hover:bg-gray-500 hover:text-white"
-                          size="sm"
-                          onClick={() => openInvoiceEditDialog(invoice, 0)}
-                        >
-                          <FaEdit className="mr-2" /> Edit
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => openDeleteConfirmation(invoice)}
-                        >
-                          <FaTrash className="mr-2" /> Delete
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="px-2 py-0.5 text-xs border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-white"
-                          size="sm"
-                          onClick={() => handleShow(invoice)}
-                        >
-                          <FaEye className="mr-1" /> Show
-                        </Button>
-                      </div>
+                {filteredIncidents.length > 0 ? (
+                  filteredIncidents.map((invoice, index) => (
+                    <TableRow key={invoice.refNo || index}>
+                      {/* Invoice Fields */}
+                      <TableCell>{invoice.refNo}</TableCell>
+                      <TableCell>{invoice.recipientName}</TableCell>
+                      <TableCell>{invoice.recipientEmail}</TableCell>
+                      <TableCell>{invoice.recipientAddress}</TableCell>
+                      <TableCell>{invoice.accountNumber}</TableCell>
+                      <TableCell>{invoice.ifscCode}</TableCell>
+                      <TableCell>{invoice.amount}</TableCell>
+                      <TableCell>{invoice.invoiceNo}</TableCell>
+                      <TableCell>{invoice.grossAmount}</TableCell>
+                      <TableCell>{invoice.tds}</TableCell>
+                      <TableCell>{invoice.otherDeductions}</TableCell>
+                      <TableCell>{invoice.netAmount}</TableCell>
+                      <TableCell>
+                        {getStatusBadge(invoice.status || "Pending")}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="outline"
+                            className="px-2 py-0.5 text-xs border-gray-500 text-gray-500 hover:bg-gray-500 hover:text-white"
+                            size="sm"
+                            onClick={() => openInvoiceEditDialog(invoice, 0)}
+                          >
+                            <FaEdit className="mr-2" /> Edit
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => openDeleteConfirmation(invoice)}
+                          >
+                            <FaTrash className="mr-2" /> Delete
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="px-2 py-0.5 text-xs border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-white"
+                            size="sm"
+                            onClick={() => handleShow(invoice)}
+                          >
+                            <FaEye className="mr-1" /> Show
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={14} className="text-center py-4">
+                      No matching payments found
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </div>

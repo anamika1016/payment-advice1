@@ -73,14 +73,13 @@ const PaymentForm = ({ incident, onClose }) => {
 
   const handleSubmit = () => {
     const dataToSubmit = { ...incidentData };
-
-    // Map field names to match schema before submission
     if (dataToSubmit.invoices && dataToSubmit.invoices.length > 0) {
       dataToSubmit.invoices = dataToSubmit.invoices.map((invoice) => ({
         refNo: invoice.refNo,
         recipientName: invoice.recipientName,
         recipientEmail: invoice.recipientEmail,
         recipientAddress: invoice.recipientAddress,
+        phone: invoice.phone,
         accountNumber: invoice.accountNumber,
         ifscCode: invoice.ifscCode,
         amount: invoice.amount,
@@ -108,7 +107,24 @@ const PaymentForm = ({ incident, onClose }) => {
 
   const handleInvoiceChange = (index, field, value) => {
     const updatedInvoices = [...(incidentData.invoices || [])];
-    updatedInvoices[index] = { ...updatedInvoices[index], [field]: value };
+    const invoice = { ...updatedInvoices[index], [field]: value };
+
+    // Auto-fill grossAmount if amount is entered
+    if (field === "amount") {
+      invoice.grossAmount = value;
+    }
+
+    // Calculate netAmount if tds or otherDeductions or grossAmount are updated
+    const grossAmount = parseFloat(invoice.grossAmount) || 0;
+    const tds = parseFloat(invoice.tds) || 0;
+    const otherDeductions = parseFloat(invoice.otherDeductions) || 0;
+
+    // Calculate netAmount only if any of the dependent fields are updated
+    if (["tds", "otherDeductions", "grossAmount", "amount"].includes(field)) {
+      invoice.netAmount = (grossAmount - tds - otherDeductions).toFixed(2);
+    }
+
+    updatedInvoices[index] = invoice;
     dispatch(setIncidentData({ invoices: updatedInvoices }));
   };
 
@@ -129,6 +145,7 @@ const PaymentForm = ({ incident, onClose }) => {
           : "",
         accountNumber: value.accountNumber || "",
         ifscCode: value.ifscCode || "",
+        phone: value.phone || "",
         // Add any other fields you want to map
       };
     } else {
@@ -136,6 +153,7 @@ const PaymentForm = ({ incident, onClose }) => {
       const fieldMapping = {
         recipient_name: "recipientName",
         recipient_email: "recipientEmail",
+        phone: "phone",
         recipient_address: "recipientAddress",
         account_number: "accountNumber",
         ifsc_code: "ifscCode",
@@ -169,6 +187,7 @@ const PaymentForm = ({ incident, onClose }) => {
             recipientName: "",
             recipientEmail: "",
             recipientAddress: "",
+            phone: "",
             accountNumber: "",
             ifscCode: "",
             amount: "",
@@ -259,7 +278,7 @@ const PaymentForm = ({ incident, onClose }) => {
             />
           </div>
 
-          <div>
+          {/* <div>
             <Label htmlFor="amount" className="required-input">
               Total Amount
             </Label>
@@ -272,7 +291,7 @@ const PaymentForm = ({ incident, onClose }) => {
               placeholder="Enter Amount"
               required
             />
-          </div>
+          </div> */}
 
           <div>
             <Label htmlFor="transactionDate" className="required-input">
@@ -372,7 +391,18 @@ const PaymentForm = ({ incident, onClose }) => {
                       placeholder="Enter Recipient Address"
                     />
                   </div>
-
+                  <div>
+                    <Label htmlFor={`phone_${index}`}>Phone</Label>
+                    <Input
+                      id={`phone_${index}`}
+                      type="text"
+                      value={invoice.phone || ""}
+                      onChange={(e) =>
+                        handleInvoiceChange(index, "phone", e.target.value)
+                      }
+                      placeholder="Enter Phone Number"
+                    />
+                  </div>
                   <div>
                     <Label
                       htmlFor={`accountNumber_${index}`}

@@ -98,6 +98,7 @@ export const updateIncidentStatus = createAsyncThunk(
       const response = await axios.patch(`/invoice/${invoiceId}/status`, {
         status,
         invoiceHtml,
+        sendSMS: true, // Add this to trigger SMS functionality
       });
 
       if (response.data.success) {

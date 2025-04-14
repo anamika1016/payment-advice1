@@ -5,6 +5,7 @@ import util from "util";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import axios from "axios"; // Add this import for SMS functionality
 
 export const createInvoice = async (req, res) => {
   try {
@@ -121,7 +122,7 @@ export const deleteInvoice = async (req, res) => {
 export const updateInvoiceStatus = async (req, res) => {
   try {
     const { invoiceId } = req.params;
-    const { status, invoiceHtml } = req.body;
+    const { status, invoiceHtml, sendSMS } = req.body;
     const { company } = req.user;
 
     if (!invoiceId) {
@@ -155,49 +156,79 @@ export const updateInvoiceStatus = async (req, res) => {
     targetInvoice.status = status;
     await paymentInvoice.save();
 
-    if (status === "Approved" && invoiceHtml) {
-      try {
-        if (!targetInvoice.recipientEmail) {
-          throw new Error("Recipient email not found for this invoice.");
+    // Prepare responses
+    let emailStatus = "not attempted";
+    let smsStatus = "not attempted";
+
+    if (status === "Approved") {
+      // Send email if HTML is provided
+      if (invoiceHtml) {
+        try {
+          if (!targetInvoice.recipientEmail) {
+            throw new Error("Recipient email not found for this invoice.");
+          }
+
+          const readFile = util.promisify(fs.readFile);
+          const __filename = fileURLToPath(import.meta.url);
+          const __dirname = dirname(__filename);
+          const emailTemplatePath = join(
+            __dirname,
+            "../templates/invoice.html"
+          );
+          const emailTemplate = await readFile(emailTemplatePath, "utf-8");
+
+          const subject = `Invoice #${
+            targetInvoice.invoiceNo || "Invoice"
+          } - Payment Approved`;
+          const pdfBuffer = await pdfGenerate(invoiceHtml);
+
+          await sendEmail(
+            targetInvoice.recipientEmail,
+            subject,
+            emailTemplate,
+            pdfBuffer
+          );
+
+          emailStatus = "sent";
+        } catch (emailError) {
+          console.error("Email sending error:", emailError);
+          emailStatus = `failed: ${emailError.message}`;
         }
+      }
 
-        const readFile = util.promisify(fs.readFile);
-        const __filename = fileURLToPath(import.meta.url);
-        const __dirname = dirname(__filename);
-        const emailTemplatePath = join(__dirname, "../templates/invoice.html");
-        const emailTemplate = await readFile(emailTemplatePath, "utf-8");
+      // Send SMS if requested and phone number is available
+      if (sendSMS && targetInvoice.phone) {
+        try {
+          // Log the phone number to verify its format
+          console.log("Sending SMS to phone:", targetInvoice.phone);
 
-        const subject = `Invoice #${
-          targetInvoice.invoiceNo || "Invoice"
-        } - Payment Approved`;
-        const pdfBuffer = await pdfGenerate(invoiceHtml);
+          const amount = targetInvoice.netAmount || targetInvoice.amount || 0;
+          const invoiceNo = targetInvoice.invoiceNo || "N/A";
+          const recipientName = targetInvoice.recipientName || "Client";
 
-        await sendEmail(
-          targetInvoice.recipientEmail,
-          subject,
-          emailTemplate,
-          pdfBuffer
-        );
+          const message = encodeURIComponent(
+            `Dear ${recipientName}, payment of Rs. ${amount.toFixed(
+              2
+            )}/- has been processed to your account against Invoice No: ${invoiceNo}. Kindly check and confirm receipt. Action For Social Advancement Finance Team`
+          );
 
-        return res.status(200).json({
-          success: true,
-          message: "Invoice approved and email sent successfully",
-          data: targetInvoice,
-        });
-      } catch (emailError) {
-        console.error("Email sending error:", emailError);
-        return res.status(500).json({
-          success: false,
-          message: "Invoice updated but failed to send email",
-          error: emailError.message,
-          data: targetInvoice,
-        });
+          const smsURL = `https://sms.yoursmsbox.com/api/sendhttp.php?authkey=3230666f72736131353261&mobiles=${targetInvoice.phone}&message=${message}&sender=ACTFSA&route=2&country=0&DLT_TE_ID=1707174435855270264`;
+
+          console.log("SMS API URL:", smsURL);
+          const smsResponse = await axios.get(smsURL);
+          console.log("SMS API full response:", smsResponse);
+
+          smsStatus = "sent";
+        } catch (smsError) {
+          console.error("SMS sending error details:", smsError);
+          smsStatus = `failed: ${smsError.message}`;
+        }
       }
     }
 
     return res.status(200).json({
       success: true,
-      message: "Invoice status updated successfully",
+      message: `Invoice status updated successfully. Email: ${emailStatus}. SMS: ${smsStatus}`,
       data: targetInvoice,
     });
   } catch (error) {

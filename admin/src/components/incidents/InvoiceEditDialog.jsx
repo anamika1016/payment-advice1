@@ -16,12 +16,12 @@ import SearchResults from "./SearchResult";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
-const InvoiceEditDialog = ({ 
-  isOpen, 
-  onClose, 
-  paymentId, 
-  invoice, 
-  invoiceIndex 
+const InvoiceEditDialog = ({
+  isOpen,
+  onClose,
+  paymentId,
+  invoice,
+  invoiceIndex,
 }) => {
   const dispatch = useDispatch();
   const { recipientNames } = useSelector((state) => state.incidents);
@@ -36,7 +36,7 @@ const InvoiceEditDialog = ({
   const handleInputChange = (field, value) => {
     setInvoiceData({
       ...invoiceData,
-      [field]: value
+      [field]: value,
     });
   };
 
@@ -63,6 +63,7 @@ const InvoiceEditDialog = ({
           : "",
         accountNumber: value.accountNumber || "",
         ifscCode: value.ifscCode || "",
+        phone: value.phone || "",
       });
     } else {
       // Handle individual field updates (backward compatibility)
@@ -72,6 +73,7 @@ const InvoiceEditDialog = ({
         recipient_address: "recipientAddress",
         account_number: "accountNumber",
         ifsc_code: "ifscCode",
+        phone: "phone",
       };
 
       const mappedField = fieldMapping[field] || field;
@@ -86,7 +88,7 @@ const InvoiceEditDialog = ({
     dispatch(
       updateIncident({
         id: paymentId,
-        incidentData: invoiceData
+        incidentData: invoiceData,
       })
     );
     onClose();
@@ -131,7 +133,9 @@ const InvoiceEditDialog = ({
               id="recipientEmail"
               type="email"
               value={invoiceData.recipientEmail || ""}
-              onChange={(e) => handleInputChange("recipientEmail", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("recipientEmail", e.target.value)
+              }
               placeholder="Enter Recipient Email"
               required
             />
@@ -143,8 +147,20 @@ const InvoiceEditDialog = ({
               id="recipientAddress"
               type="text"
               value={invoiceData.recipientAddress || ""}
-              onChange={(e) => handleInputChange("recipientAddress", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("recipientAddress", e.target.value)
+              }
               placeholder="Enter Recipient Address"
+            />
+          </div>
+          <div>
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              id="phone"
+              type="text"
+              value={invoiceData.phone || ""}
+              onChange={(e) => handleInputChange("phone", e.target.value)}
+              placeholder="Enter Phone Number"
             />
           </div>
 
@@ -156,7 +172,9 @@ const InvoiceEditDialog = ({
               id="accountNumber"
               type="text"
               value={invoiceData.accountNumber || ""}
-              onChange={(e) => handleInputChange("accountNumber", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("accountNumber", e.target.value)
+              }
               placeholder="Enter Account Number"
               required
             />
@@ -233,7 +251,9 @@ const InvoiceEditDialog = ({
               type="number"
               step="0.01"
               value={invoiceData.otherDeductions || ""}
-              onChange={(e) => handleInputChange("otherDeductions", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("otherDeductions", e.target.value)
+              }
               placeholder="Enter Other Deductions"
             />
           </div>
