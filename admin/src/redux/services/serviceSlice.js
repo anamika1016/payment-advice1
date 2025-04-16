@@ -31,7 +31,7 @@ export const addService = createAsyncThunk(
       }
       return response.data.data;
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
+      // Return the error message for field-specific handling
       return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
@@ -51,7 +51,7 @@ export const updateService = createAsyncThunk(
       }
       return response.data.data;
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
+      // Return the error message for field-specific handling
       return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
@@ -73,6 +73,39 @@ export const deleteService = createAsyncThunk(
   }
 );
 
+export const bulkUploadServices = createAsyncThunk(
+  "services/bulkUploadServices",
+  async (formData, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await axios.post("/service/bulk-upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.data.success) {
+        toast.success(response.data.message);
+        dispatch(fetchServices());
+        return response.data.data;
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
+
+      // If there are specific validation errors, show them
+      if (
+        error.response?.data?.errors &&
+        Array.isArray(error.response.data.errors)
+      ) {
+        error.response.data.errors.forEach((err) => {
+          toast.error(err);
+        });
+      }
+
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 const initialState = {
   services: [],
   isLoading: false,
@@ -89,6 +122,12 @@ const initialState = {
     type: "",
   },
   error: null,
+  validationErrors: {
+    email: null,
+    phone: null,
+    accountNumber: null,
+    name: null,
+  },
 };
 
 const serviceSlice = createSlice({
@@ -100,6 +139,12 @@ const serviceSlice = createSlice({
     },
     resetService: (state) => {
       state.serviceData = initialState.serviceData;
+      state.error = null;
+      state.validationErrors = initialState.validationErrors;
+    },
+    clearValidationErrors: (state) => {
+      state.validationErrors = initialState.validationErrors;
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
@@ -121,6 +166,7 @@ const serviceSlice = createSlice({
     builder.addCase(addService.pending, (state) => {
       state.isLoading = true;
       state.error = null;
+      state.validationErrors = initialState.validationErrors;
     });
     builder.addCase(addService.fulfilled, (state, action) => {
       state.isLoading = false;
@@ -128,13 +174,27 @@ const serviceSlice = createSlice({
     });
     builder.addCase(addService.rejected, (state, action) => {
       state.isLoading = false;
-      state.error = action.payload;
+
+      // Check for specific validation errors
+      const errorMsg = action.payload;
+      if (errorMsg.includes("Email")) {
+        state.validationErrors.email = errorMsg;
+      } else if (errorMsg.includes("Phone")) {
+        state.validationErrors.phone = errorMsg;
+      } else if (errorMsg.includes("Account")) {
+        state.validationErrors.accountNumber = errorMsg;
+      } else if (errorMsg.includes("Name")) {
+        state.validationErrors.name = errorMsg;
+      } else {
+        state.error = errorMsg;
+      }
     });
 
     // Update service
     builder.addCase(updateService.pending, (state) => {
       state.isLoading = true;
       state.error = null;
+      state.validationErrors = initialState.validationErrors;
     });
     builder.addCase(updateService.fulfilled, (state, action) => {
       state.isLoading = false;
@@ -147,7 +207,20 @@ const serviceSlice = createSlice({
     });
     builder.addCase(updateService.rejected, (state, action) => {
       state.isLoading = false;
-      state.error = action.payload;
+
+      // Check for specific validation errors
+      const errorMsg = action.payload;
+      if (errorMsg.includes("Email")) {
+        state.validationErrors.email = errorMsg;
+      } else if (errorMsg.includes("Phone")) {
+        state.validationErrors.phone = errorMsg;
+      } else if (errorMsg.includes("Account")) {
+        state.validationErrors.accountNumber = errorMsg;
+      } else if (errorMsg.includes("Name")) {
+        state.validationErrors.name = errorMsg;
+      } else {
+        state.error = errorMsg;
+      }
     });
 
     // Delete service
@@ -165,9 +238,24 @@ const serviceSlice = createSlice({
       state.isLoading = false;
       state.error = action.payload;
     });
+
+    // Bulk Upload
+    builder.addCase(bulkUploadServices.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
+    builder.addCase(bulkUploadServices.fulfilled, (state) => {
+      state.isLoading = false;
+      // Services will be fetched separately
+    });
+    builder.addCase(bulkUploadServices.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
   },
 });
 
-export const { setSeviceData, resetService } = serviceSlice.actions;
+export const { setSeviceData, resetService, clearValidationErrors } =
+  serviceSlice.actions;
 
 export default serviceSlice.reducer;

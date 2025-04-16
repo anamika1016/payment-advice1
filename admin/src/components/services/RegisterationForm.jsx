@@ -7,6 +7,7 @@ import {
   resetService,
   setSeviceData,
   updateService,
+  clearValidationErrors,
 } from "@/redux/services/serviceSlice";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -17,10 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { toast } from "sonner";
+import { AlertCircle } from "lucide-react";
 
 const RegisterationForm = ({ service, onClose }) => {
   const dispatch = useDispatch();
-  const { serviceData, isLoading, error } = useSelector(
+  const { serviceData, isLoading, error, validationErrors } = useSelector(
     (state) => state.services
   );
 
@@ -29,73 +32,151 @@ const RegisterationForm = ({ service, onClose }) => {
       dispatch(setSeviceData(service));
     }
 
+    // Clear any existing validation errors when the form is opened
+    dispatch(clearValidationErrors());
+
     return () => dispatch(resetService());
   }, [service, dispatch]);
-
-  const handleStatusSelect = (status) => {
-    dispatch(setSeviceData({ status: status.name }));
-  };
 
   const onInputChange = (e) => {
     const { id, value } = e.target;
     dispatch(setSeviceData({ [id]: value }));
+
+    // Clear validation error for this field when user starts typing
+    if (validationErrors[id]) {
+      dispatch(clearValidationErrors());
+    }
   };
 
-  const handleSubmit = () => {
-    if (service) {
-      dispatch(updateService({ id: serviceData._id, serviceData }));
-    } else {
-      dispatch(addService(serviceData));
+  const handleSubmit = async () => {
+    // Basic form validation
+    const requiredFields = ["name", "email", "phone"];
+    const missingFields = requiredFields.filter((field) => !serviceData[field]);
+
+    if (missingFields.length > 0) {
+      const fieldNames = missingFields
+        .map((field) => field.charAt(0).toUpperCase() + field.slice(1))
+        .join(", ");
+      toast.error(`Please fill in all required fields: ${fieldNames}`);
+      return;
     }
 
-    onClose();
+    try {
+      let actionResult;
+      if (service) {
+        actionResult = await dispatch(
+          updateService({ id: serviceData._id, serviceData })
+        );
+      } else {
+        actionResult = await dispatch(addService(serviceData));
+      }
+
+      // Check if the action was fulfilled (no error)
+      if (!actionResult.error) {
+        onClose();
+      }
+    } catch (err) {
+      console.error("Error submitting form:", err);
+    }
   };
 
-  const currentStatus = serviceStatus.find(
-    (status) => status.name === serviceData.status
-  );
+  // Helper function to determine if field has error
+  const hasError = (fieldName) => {
+    return validationErrors[fieldName] ? true : false;
+  };
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
+      {/* Display general error if any */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex items-center">
+          <AlertCircle className="h-5 w-5 mr-2" />
+          <span>{error}</span>
+        </div>
+      )}
+
       <div>
-        <Label htmlFor="name" className="required-input">
+        <Label
+          htmlFor="name"
+          className={`required-input ${hasError("name") ? "text-red-500" : ""}`}
+        >
           Name
         </Label>
         <Input
           id="name"
           type="text"
-          value={serviceData.name}
+          value={serviceData.name || ""}
           onChange={onInputChange}
           placeholder="Enter service name"
           required
+          className={
+            hasError("name") ? "border-red-500 focus:ring-red-500" : ""
+          }
         />
+        {validationErrors.name && (
+          <p className="text-red-500 text-sm mt-1 flex items-center">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            {validationErrors.name}
+          </p>
+        )}
       </div>
+
       <div>
-        <Label htmlFor="email" className="required-input">
+        <Label
+          htmlFor="email"
+          className={`required-input ${
+            hasError("email") ? "text-red-500" : ""
+          }`}
+        >
           Email
         </Label>
         <Input
           id="email"
           type="email"
-          value={serviceData.email}
+          value={serviceData.email || ""}
           onChange={onInputChange}
           placeholder="Enter Email Address"
           required
+          className={
+            hasError("email") ? "border-red-500 focus:ring-red-500" : ""
+          }
         />
+        {validationErrors.email && (
+          <p className="text-red-500 text-sm mt-1 flex items-center">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            {validationErrors.email}
+          </p>
+        )}
       </div>
+
       <div>
-        <Label htmlFor="phone" className="required-input">
+        <Label
+          htmlFor="phone"
+          className={`required-input ${
+            hasError("phone") ? "text-red-500" : ""
+          }`}
+        >
           Phone Number
         </Label>
         <Input
           id="phone"
-          type="number"
-          value={serviceData.phone}
+          type="text"
+          value={serviceData.phone || ""}
           onChange={onInputChange}
           placeholder="Enter Phone Number"
           required
+          className={
+            hasError("phone") ? "border-red-500 focus:ring-red-500" : ""
+          }
         />
+        {validationErrors.phone && (
+          <p className="text-red-500 text-sm mt-1 flex items-center">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            {validationErrors.phone}
+          </p>
+        )}
       </div>
+
       <div>
         <Label htmlFor="bankName" className="required-input">
           Bank Name
@@ -103,25 +184,41 @@ const RegisterationForm = ({ service, onClose }) => {
         <Input
           id="bankName"
           type="text"
-          value={serviceData.bankName}
+          value={serviceData.bankName || ""}
           onChange={onInputChange}
           placeholder="Enter Bank Name"
           required
         />
       </div>
+
       <div>
-        <Label htmlFor="accountNumber" className="required-input">
+        <Label
+          htmlFor="accountNumber"
+          className={`required-input ${
+            hasError("accountNumber") ? "text-red-500" : ""
+          }`}
+        >
           Account Number
         </Label>
         <Input
           id="accountNumber"
-          type="number"
-          value={serviceData.accountNumber}
+          type="text"
+          value={serviceData.accountNumber || ""}
           onChange={onInputChange}
           placeholder="Enter Account Number"
           required
+          className={
+            hasError("accountNumber") ? "border-red-500 focus:ring-red-500" : ""
+          }
         />
+        {validationErrors.accountNumber && (
+          <p className="text-red-500 text-sm mt-1 flex items-center">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            {validationErrors.accountNumber}
+          </p>
+        )}
       </div>
+
       <div>
         <Label htmlFor="ifscCode" className="required-input">
           IFSC Code
@@ -129,12 +226,13 @@ const RegisterationForm = ({ service, onClose }) => {
         <Input
           id="ifscCode"
           type="text"
-          value={serviceData.ifscCode}
+          value={serviceData.ifscCode || ""}
           onChange={onInputChange}
           placeholder="Enter IFSC Code"
           required
         />
       </div>
+
       <div>
         <Label htmlFor="bankAddress" className="required-input">
           Address
@@ -142,12 +240,13 @@ const RegisterationForm = ({ service, onClose }) => {
         <Input
           id="bankAddress"
           type="text"
-          value={serviceData.bankAddress}
+          value={serviceData.bankAddress || ""}
           onChange={onInputChange}
           placeholder="Enter Address"
           required
         />
       </div>
+
       <div>
         <Label htmlFor="state" className="required-input">
           State
@@ -155,12 +254,13 @@ const RegisterationForm = ({ service, onClose }) => {
         <Input
           id="state"
           type="text"
-          value={serviceData.state}
+          value={serviceData.state || ""}
           onChange={onInputChange}
           placeholder="Enter State"
           required
         />
       </div>
+
       <div>
         <Label htmlFor="district" className="required-input">
           District
@@ -168,12 +268,13 @@ const RegisterationForm = ({ service, onClose }) => {
         <Input
           id="district"
           type="text"
-          value={serviceData.district}
+          value={serviceData.district || ""}
           onChange={onInputChange}
           placeholder="Enter District"
           required
         />
       </div>
+
       <div>
         <Label htmlFor="type" className="required-input">
           Type
@@ -192,8 +293,17 @@ const RegisterationForm = ({ service, onClose }) => {
         </Select>
       </div>
 
-      <div className="flex justify-end mt-4">
-        <Button onClick={handleSubmit}>{service ? "Update" : "Add"}</Button>
+      <div className="flex justify-end gap-2 mt-4">
+        <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          Cancel
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className="min-w-[80px]"
+        >
+          {isLoading ? "Processing..." : service ? "Update" : "Add"}
+        </Button>
       </div>
     </div>
   );

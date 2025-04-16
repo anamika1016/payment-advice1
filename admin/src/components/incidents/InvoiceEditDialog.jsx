@@ -219,6 +219,16 @@ const InvoiceEditDialog = ({
               placeholder="Enter Invoice Number"
             />
           </div>
+          <div>
+            <Label htmlFor="invoiceDate">Invoice Date</Label>
+            <Input
+              id="invoiceDate"
+              type="date"
+              value={invoiceData.invoiceDate || ""}
+              onChange={(e) => handleInputChange("invoiceDate", e.target.value)}
+              placeholder="Enter Invoice Date"
+            />
+          </div>
 
           <div>
             <Label htmlFor="grossAmount">Gross Amount</Label>

@@ -9,14 +9,67 @@ import axios from "axios"; // Add this import for SMS functionality
 
 export const createInvoice = async (req, res) => {
   try {
-    // Get the company from the authenticated user
     const { company } = req.user;
+    const invoiceData = { ...req.body, company };
 
-    // Add company to the invoice data
-    const invoiceData = {
-      ...req.body,
-      company,
-    };
+    if (invoiceData.invoices && invoiceData.invoices.length > 0) {
+      const refNos = invoiceData.invoices
+        .map((inv) => inv.refNo)
+        .filter(Boolean);
+      const invoiceNos = invoiceData.invoices
+        .map((inv) => inv.invoiceNo)
+        .filter(Boolean);
+
+      const hasDuplicateRefNos = new Set(refNos).size !== refNos.length;
+      const hasDuplicateInvoiceNos =
+        new Set(invoiceNos).size !== invoiceNos.length;
+
+      if (hasDuplicateRefNos) {
+        return res.status(400).send({
+          success: false,
+          message: "Duplicate reference numbers found in your submission",
+        });
+      }
+
+      if (hasDuplicateInvoiceNos) {
+        return res.status(400).send({
+          success: false,
+          message: "Duplicate invoice numbers found in your submission",
+        });
+      }
+
+      for (const refNo of refNos) {
+        if (refNo) {
+          const existingRefNo = await PaymentInvoice.findOne({
+            company,
+            "invoices.refNo": refNo,
+          });
+
+          if (existingRefNo) {
+            return res.status(400).send({
+              success: false,
+              message: `Reference Number '${refNo}' already exists in the database`,
+            });
+          }
+        }
+      }
+
+      for (const invoiceNo of invoiceNos) {
+        if (invoiceNo) {
+          const existingInvoiceNo = await PaymentInvoice.findOne({
+            company,
+            "invoices.invoiceNo": invoiceNo,
+          });
+
+          if (existingInvoiceNo) {
+            return res.status(400).send({
+              success: false,
+              message: `Invoice Number '${invoiceNo}' already exists in the database`,
+            });
+          }
+        }
+      }
+    }
 
     const newInvoice = new PaymentInvoice(invoiceData);
     const savedInvoice = await newInvoice.save();
@@ -175,11 +228,32 @@ export const updateInvoiceStatus = async (req, res) => {
             __dirname,
             "../templates/invoice.html"
           );
-          const emailTemplate = await readFile(emailTemplatePath, "utf-8");
+
+          let emailTemplate = await readFile(emailTemplatePath, "utf-8");
+          emailTemplate = emailTemplate
+
+            .replace(
+              "[Recipient's Name]",
+              targetInvoice.recipientName || "Customer"
+            )
+            .replace("[Invoice Number]", targetInvoice.invoiceNo || "N/A")
+            .replace(
+              "[Product/Service]",
+              targetInvoice.productName || "Product/Service"
+            )
+            .replace(/\[Date\]/g, new Date().toLocaleDateString("en-IN"))
+            .replace(
+              "[Net Amount]",
+              `₹${(targetInvoice.netAmount || 0).toFixed(2)}`
+            )
+            .replace("[Due Date]", targetInvoice.dueDate || "N/A")
+            .replace("[Account Number]", targetInvoice.accountNumber || "N/A")
+            .replace("[IFSC Code]", targetInvoice.ifscCode || "N/A")
+            .replace("[UTR Number]", targetInvoice.utrNumber || "N/A");
 
           const subject = `Invoice #${
-            targetInvoice.invoiceNo || "Invoice"
-          } - Payment Approved`;
+            targetInvoice.invoiceNo || ""
+          } - Payment Approved successfully`;
           const pdfBuffer = await pdfGenerate(invoiceHtml);
 
           await sendEmail(

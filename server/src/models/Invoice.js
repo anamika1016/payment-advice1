@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
 
 const InvoiceSchema = new mongoose.Schema({
-  refNo: { type: String, trim: true },
+  refNo: {
+    type: String,
+    trim: true,
+    index: true, // Added for optimization of lookups
+  },
   recipientName: { type: String, trim: true, required: true },
   recipientEmail: { type: String, trim: true, required: true },
   recipientAddress: { type: String, trim: true },
@@ -14,7 +18,11 @@ const InvoiceSchema = new mongoose.Schema({
     enum: ["Approved", "Pending", "Rejected"],
     default: "Pending",
   },
-  invoiceNo: { type: String, trim: true },
+  invoiceNo: {
+    type: String,
+    trim: true,
+    index: true, // Added for optimization of lookups
+  },
   invoiceDate: { type: Date },
   grossAmount: { type: Number },
   tds: { type: Number },

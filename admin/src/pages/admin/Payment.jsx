@@ -7,6 +7,7 @@ import {
   FaTrash,
   FaEnvelope,
   FaSearch,
+  FaPaperPlane,
 } from "react-icons/fa";
 import {
   Table,
@@ -49,6 +50,7 @@ const Payment = () => {
   const [logoImage, setLogoImage] = useState(null);
   const [paplImage, setPaplImage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isResending, setIsResending] = useState(false);
 
   // Add new state variables for the invoice edit dialog
   const [isInvoiceEditDialogOpen, setIsInvoiceEditDialogOpen] = useState(false);
@@ -175,16 +177,22 @@ const Payment = () => {
         html = html.replace(/src=["'].*?papl\.jpg["']/g, `src="${paplImage}"`);
       }
 
-      const today = new Date();
-      const formattedDate = today
-        .toLocaleDateString("en-IN", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        })
-        .replace(/\//g, "-");
-
-      const invoiceDate = invoice.invoiceDate || formattedDate;
+      // Use invoice date if present, otherwise use current date
+      const invoiceDate = invoice.invoiceDate
+        ? new Date(invoice.invoiceDate)
+            .toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })
+            .replace(/\//g, "-")
+        : new Date()
+            .toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })
+            .replace(/\//g, "-");
 
       const totalGrossAmount = invoice.grossAmount || 0;
       const totalTds = invoice.tds || 0;
@@ -196,7 +204,7 @@ const Payment = () => {
           /Invoice No\/Date/g,
           `Invoice No: ${invoice.invoiceNo || "-"} / Date: ${invoiceDate}`
         )
-        .replace(/<p>Date<\/p>/g, `<p>Date: ${formattedDate}</p>`)
+        .replace(/<p>Date<\/p>/g, `<p>Date: ${invoiceDate}</p>`)
         .replace(
           /<p>Ref No\.<br><\/p>/g,
           `<p>Ref No.: ${invoice.refNo || "-"}<br></p>`
@@ -240,7 +248,7 @@ const Payment = () => {
             }</td>
             <td style="border: 1px solid black; padding: 8px;">
               ${invoice.invoiceNo || "-"}<br>
-              ${invoiceDate} <!-- Use the updated invoiceDate here -->
+              ${invoiceDate}
             </td>
             <td style="border: 1px solid black; padding: 8px; text-align: right;">₹${(
               totalGrossAmount || 0
@@ -316,6 +324,31 @@ const Payment = () => {
     setIsPdfViewOpen(false);
     setSelectedIncident(null);
     setInvoiceHtml("");
+  };
+
+  // Add new resend function
+  const handleResendInvoice = async (invoiceId) => {
+    if (selectedIncident) {
+      try {
+        setIsResending(true);
+        const html = generateInvoicePdf(selectedIncident);
+
+        await dispatch(
+          updateIncidentStatus({
+            invoiceId: invoiceId,
+            status: "Approved", // Keep the status as approved
+            invoiceHtml: html,
+          })
+        );
+
+        setIsResending(false);
+        toast.success("Invoice has been resent successfully");
+      } catch (error) {
+        setIsResending(false);
+        console.error("Error resending invoice:", error);
+        toast.error("Failed to resend invoice: " + error.message);
+      }
+    }
   };
 
   const handleStatusChange = async (invoiceId, status) => {
@@ -566,6 +599,28 @@ const Payment = () => {
                     ) : (
                       <>
                         <FaCheck className="mr-2" /> Approve & Send Invoice
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              )}
+
+              {/* Add resend button if status is already approved */}
+              {selectedIncident?.status === "Approved" && (
+                <DialogFooter className="flex justify-end p-4 bg-white border-t">
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={() => handleResendInvoice(selectedIncident._id)}
+                    disabled={isResending}
+                  >
+                    {isResending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Resending...
+                      </>
+                    ) : (
+                      <>
+                        <FaPaperPlane className="mr-2" /> Resend Invoice
                       </>
                     )}
                   </Button>

@@ -84,6 +84,7 @@ const PaymentForm = ({ incident, onClose }) => {
         ifscCode: invoice.ifscCode,
         amount: invoice.amount,
         invoiceNo: invoice.invoiceNo,
+        invoiceDate: invoice.invoiceDate,
         grossAmount: invoice.grossAmount,
         tds: invoice.tds,
         otherDeductions: invoice.otherDeductions,
@@ -196,6 +197,7 @@ const PaymentForm = ({ incident, onClose }) => {
             tds: "",
             otherDeductions: "",
             netAmount: "",
+            invoiceDate: new Date().toISOString().split("T")[0], // <-- Add this
           },
         ],
       })
@@ -475,6 +477,22 @@ const PaymentForm = ({ incident, onClose }) => {
                         handleInvoiceChange(index, "invoiceNo", e.target.value)
                       }
                       placeholder="Enter Invoice Number"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`invoiceDate_${index}`}>Invoice Date</Label>
+                    <Input
+                      id={`invoiceDate_${index}`}
+                      type="date"
+                      value={invoice.invoiceDate || ""}
+                      onChange={(e) =>
+                        handleInvoiceChange(
+                          index,
+                          "invoiceDate",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Enter Invoice Date"
                     />
                   </div>
 

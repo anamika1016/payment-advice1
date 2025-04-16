@@ -12,6 +12,47 @@ export const createService = async (req, res) => {
       company, // Use company field only
     };
 
+    // Check for existing service with same email
+    const existingEmail = await serviceModel.findOne({
+      email: serviceData.email,
+      company,
+    });
+
+    if (existingEmail) {
+      return res.status(400).send({
+        success: false,
+        message: "Email address is already registered",
+      });
+    }
+
+    // Check for existing service with same phone
+    const existingPhone = await serviceModel.findOne({
+      phone: serviceData.phone,
+      company,
+    });
+
+    if (existingPhone) {
+      return res.status(400).send({
+        success: false,
+        message: "Phone number is already registered",
+      });
+    }
+
+    // Check for existing service with same account number if provided
+    if (serviceData.accountNumber) {
+      const existingAccount = await serviceModel.findOne({
+        accountNumber: serviceData.accountNumber,
+        company,
+      });
+
+      if (existingAccount) {
+        return res.status(400).send({
+          success: false,
+          message: "Account number is already registered",
+        });
+      }
+    }
+
     const newService = new serviceModel(serviceData);
     const savedService = await newService.save();
 
@@ -84,13 +125,62 @@ export const updateService = async (req, res) => {
   try {
     const { company } = req.user;
     const serviceData = { ...req.body };
+    const serviceId = req.params.id;
 
     // Prevent changing the company of the service
     delete serviceData.company;
 
+    // Check for existing service with same email (excluding current service)
+    if (serviceData.email) {
+      const existingEmail = await serviceModel.findOne({
+        email: serviceData.email,
+        company,
+        _id: { $ne: serviceId },
+      });
+
+      if (existingEmail) {
+        return res.status(400).send({
+          success: false,
+          message: "Email address is already registered",
+        });
+      }
+    }
+
+    // Check for existing service with same phone (excluding current service)
+    if (serviceData.phone) {
+      const existingPhone = await serviceModel.findOne({
+        phone: serviceData.phone,
+        company,
+        _id: { $ne: serviceId },
+      });
+
+      if (existingPhone) {
+        return res.status(400).send({
+          success: false,
+          message: "Phone number is already registered",
+        });
+      }
+    }
+
+    // Check for existing service with same account number if provided (excluding current service)
+    if (serviceData.accountNumber) {
+      const existingAccount = await serviceModel.findOne({
+        accountNumber: serviceData.accountNumber,
+        company,
+        _id: { $ne: serviceId },
+      });
+
+      if (existingAccount) {
+        return res.status(400).send({
+          success: false,
+          message: "Account number is already registered",
+        });
+      }
+    }
+
     // Update while ensuring the service belongs to the user's company
     const service = await serviceModel.findOneAndUpdate(
-      { _id: req.params.id, company },
+      { _id: serviceId, company },
       serviceData,
       {
         new: true,
@@ -197,25 +287,88 @@ export const bulkUploadServices = async (req, res) => {
 
     // Validate and add company to each record
     const processedData = [];
+    const errors = [];
+
+    // First pass - validation check
     for (let i = 0; i < jsonData.length; i++) {
       const item = jsonData[i];
+      const rowNum = i + 1;
 
       if (!item.name || !item.email || !item.phone) {
-        return res.status(400).send({
-          success: false,
-          message: `Row ${
-            i + 1
-          } is missing required fields (name, email, or phone)`,
-        });
+        errors.push(
+          `Row ${rowNum} is missing required fields (name, email, or phone)`
+        );
+        continue;
       }
 
-      // Add company field to each record
+      // Check for duplicates within the file
+      const duplicateInFile = processedData.find(
+        (service) =>
+          service.email === item.email ||
+          service.phone === item.phone ||
+          (item.accountNumber && service.accountNumber === item.accountNumber)
+      );
+
+      if (duplicateInFile) {
+        errors.push(
+          `Row ${rowNum} contains duplicate email, phone or account number`
+        );
+        continue;
+      }
+
+      // Check for existing records in database
+      const existingEmail = await serviceModel.findOne({
+        email: item.email,
+        company,
+      });
+      if (existingEmail) {
+        errors.push(
+          `Row ${rowNum}: Email "${item.email}" is already registered`
+        );
+        continue;
+      }
+
+      const existingPhone = await serviceModel.findOne({
+        phone: item.phone,
+        company,
+      });
+      if (existingPhone) {
+        errors.push(
+          `Row ${rowNum}: Phone "${item.phone}" is already registered`
+        );
+        continue;
+      }
+
+      if (item.accountNumber) {
+        const existingAccount = await serviceModel.findOne({
+          accountNumber: item.accountNumber,
+          company,
+        });
+        if (existingAccount) {
+          errors.push(
+            `Row ${rowNum}: Account number "${item.accountNumber}" is already registered`
+          );
+          continue;
+        }
+      }
+
+      // Add company field to valid record
       processedData.push({
         ...item,
         company,
       });
     }
 
+    // If there are validation errors, return them
+    if (errors.length > 0) {
+      return res.status(400).send({
+        success: false,
+        message: "Validation errors in uploaded file",
+        errors: errors,
+      });
+    }
+
+    // If validation passes, insert data
     const insertedData = await serviceModel.insertMany(processedData);
 
     res.status(201).send({
