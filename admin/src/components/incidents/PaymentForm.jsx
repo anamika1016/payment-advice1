@@ -42,7 +42,7 @@ const PaymentForm = ({ incident, onClose }) => {
           bankName: "",
           senderAccountNumber: "",
           amount: null,
-          transactionDate: new Date().toISOString().split("T")[0],
+          transactionDate: "", // FIXED: Don't default to current date
           invoices: [],
         })
       );
@@ -171,10 +171,7 @@ const PaymentForm = ({ incident, onClose }) => {
   };
 
   const handleRecipientSearch = (index, value) => {
-    // Update the recipientName field
     handleInvoiceChange(index, "recipientName", value);
-
-    // Fetch matching recipients
     dispatch(fetchRecipientByName({ namePrefix: value.toLowerCase() }));
   };
 
@@ -197,7 +194,7 @@ const PaymentForm = ({ incident, onClose }) => {
             tds: "",
             otherDeductions: "",
             netAmount: "",
-            invoiceDate: new Date().toISOString().split("T")[0], // <-- Add this
+            invoiceDate: "", // FIXED: Don't default to current date
           },
         ],
       })
@@ -302,13 +299,7 @@ const PaymentForm = ({ incident, onClose }) => {
             <Input
               id="transactionDate"
               type="date"
-              value={
-                incidentData.transactionDate
-                  ? new Date(incidentData.transactionDate)
-                      .toISOString()
-                      .split("T")[0]
-                  : new Date().toISOString().split("T")[0]
-              }
+              value={incidentData.transactionDate || ""} // FIXED: Don't convert to current date
               onChange={onInputChange}
               required
             />

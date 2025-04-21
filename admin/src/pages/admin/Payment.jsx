@@ -265,15 +265,9 @@ const Payment = () => {
           </tr>
           <tr>
             <td style="border: 1px solid black; padding: 8px; font-weight: bold;" colspan="2">TOTAL</td>
-            <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">₹${(
-              totalGrossAmount || 0
-            ).toFixed(2)}</td>
-            <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">₹${(
-              totalTds || 0
-            ).toFixed(2)}</td>
-            <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">₹${(
-              totalOtherDeductions || 0
-            ).toFixed(2)}</td>
+            <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;"></td>
+            <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;"></td>
+            <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;"></td>
             <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">₹${(
               totalNetAmount || 0
             ).toFixed(2)}</td>

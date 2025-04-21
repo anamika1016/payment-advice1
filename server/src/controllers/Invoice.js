@@ -91,13 +91,19 @@ export const createInvoice = async (req, res) => {
 
 export const getInvoices = async (req, res) => {
   try {
-    // Get the company from the authenticated user
     const { company } = req.user;
 
-    // Filter invoices by company
-    const invoices = await PaymentInvoice.find({ company }).select("invoices");
+    const invoices = await PaymentInvoice.find({ company });
 
-    const allInvoices = invoices.flatMap((doc) => doc.invoices);
+    const allInvoices = invoices.flatMap((doc) =>
+      doc.invoices.map((invoice) => {
+        const invoiceObj = invoice.toObject ? invoice.toObject() : invoice;
+        return {
+          ...invoiceObj,
+          utrNo: doc.utrNo,
+        };
+      })
+    );
 
     res.status(200).send({ success: true, data: allInvoices });
   } catch (error) {
