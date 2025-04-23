@@ -195,17 +195,13 @@ const InvoiceEditDialog = ({
           </div>
 
           <div>
-            <Label htmlFor="amount" className="required-input">
-              Amount
-            </Label>
+            <Label htmlFor="status">Paticulers</Label>
             <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              value={invoiceData.amount || ""}
-              onChange={(e) => handleInputChange("amount", e.target.value)}
-              placeholder="Enter Amount"
-              required
+              id="particulars"
+              type="text"
+              value={invoiceData.particulars || ""}
+              onChange={(e) => handleInputChange("particulars", e.target.value)}
+              placeholder="Enter Particulars"
             />
           </div>
 

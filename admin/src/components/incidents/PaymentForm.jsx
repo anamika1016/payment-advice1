@@ -20,7 +20,6 @@ import {
 } from "../ui/select";
 import Layout from "@/components/layout/Layout";
 import { useNavigate } from "react-router-dom";
-import axios from "@/api/axios"; // Make sure this is your configured axios instance
 
 const PaymentForm = ({ incident, onClose }) => {
   const dispatch = useDispatch();
@@ -84,6 +83,7 @@ const PaymentForm = ({ incident, onClose }) => {
         accountNumber: invoice.accountNumber,
         ifscCode: invoice.ifscCode,
         amount: invoice.amount,
+        particulars: invoice.particulars,
         invoiceNo: invoice.invoiceNo,
         invoiceDate: invoice.invoiceDate,
         grossAmount: invoice.grossAmount,
@@ -190,6 +190,7 @@ const PaymentForm = ({ incident, onClose }) => {
             accountNumber: "",
             ifscCode: "",
             amount: "",
+            particulars: "",
             invoiceNo: "",
             grossAmount: "",
             tds: "",
@@ -396,25 +397,21 @@ const PaymentForm = ({ incident, onClose }) => {
                   </div>
 
                   <div>
-                    <Label
-                      htmlFor={`amount_${index}`}
-                      className="required-input"
-                    >
-                      Amount
-                    </Label>
+                    <Label htmlFor={`particulars_${index}`}>Particulars</Label>
                     <Input
-                      id={`amount_${index}`}
-                      type="number"
-                      step="0.01"
-                      value={invoice.amount || ""}
+                      id={`particulars_${index}`}
+                      type="text"
+                      value={invoice.particulars || ""}
                       onChange={(e) =>
-                        handleInvoiceChange(index, "amount", e.target.value)
+                        handleInvoiceChange(
+                          index,
+                          "particulars",
+                          e.target.value
+                        )
                       }
-                      placeholder="Enter Amount"
-                      required
+                      placeholder="Enter Particulars"
                     />
                   </div>
-
                   <div>
                     <Label htmlFor={`invoiceNo_${index}`}>
                       Invoice Number/RFP Number

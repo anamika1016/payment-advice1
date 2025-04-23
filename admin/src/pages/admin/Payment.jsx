@@ -72,7 +72,7 @@ const Payment = () => {
   const loadImages = async () => {
     try {
       // Load logo image
-      const logoResponse = await fetch("/img/logo.jpg");
+      const logoResponse = await fetch("/img/papllogo.jpg");
       if (logoResponse.ok) {
         const logoBlob = await logoResponse.blob();
         const logoReader = new FileReader();
@@ -244,7 +244,7 @@ const Payment = () => {
         <tbody>
           <tr>
             <td style="border: 1px solid black; padding: 8px;">${
-              invoice.particulars || "-"
+              invoice.particulars || invoice.particulars || "-"
             }</td>
             <td style="border: 1px solid black; padding: 8px;">
               ${invoice.invoiceNo || "-"}<br>

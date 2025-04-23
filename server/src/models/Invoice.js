@@ -12,7 +12,7 @@ const InvoiceSchema = new mongoose.Schema({
   phone: { type: String, trim: true },
   accountNumber: { type: String, trim: true, required: true },
   ifscCode: { type: String, trim: true, required: true },
-  amount: { type: Number, required: true },
+  amount: { type: Number },
   status: {
     type: String,
     enum: ["Approved", "Pending", "Rejected"],
@@ -28,6 +28,7 @@ const InvoiceSchema = new mongoose.Schema({
   tds: { type: Number },
   otherDeductions: { type: Number },
   netAmount: { type: Number },
+  particulars: { type: String, trim: true },
 });
 
 const PaymentInvoiceSchema = new mongoose.Schema({
