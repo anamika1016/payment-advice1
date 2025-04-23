@@ -27,11 +27,16 @@ const PaymentForm = ({ incident, onClose }) => {
     (state) => state.incidents
   );
   const navigate = useNavigate();
+
   useEffect(() => {
     if (incident) {
       const formattedIncident = {
         ...incident,
-        invoices: incident.invoices || [],
+        invoices:
+          incident.invoices?.map((invoice) => ({
+            ...invoice,
+            additionalInvoices: invoice.additionalInvoices || [],
+          })) || [],
       };
       dispatch(setIncidentData(formattedIncident));
     } else {
@@ -44,6 +49,7 @@ const PaymentForm = ({ incident, onClose }) => {
           amount: null,
           transactionDate: "",
           invoices: [],
+          company: "asa", // Default value for company
         })
       );
     }
@@ -73,25 +79,56 @@ const PaymentForm = ({ incident, onClose }) => {
 
   const handleSubmit = () => {
     const dataToSubmit = { ...incidentData };
+
+    // Ensure company field is set (if not already in the data)
+    if (!dataToSubmit.company) {
+      dataToSubmit.company = "asa"; // Default value
+    }
+
     if (dataToSubmit.invoices && dataToSubmit.invoices.length > 0) {
-      dataToSubmit.invoices = dataToSubmit.invoices.map((invoice) => ({
-        refNo: invoice.refNo,
-        recipientName: invoice.recipientName,
-        recipientEmail: invoice.recipientEmail,
-        recipientAddress: invoice.recipientAddress,
-        phone: invoice.phone,
-        accountNumber: invoice.accountNumber,
-        ifscCode: invoice.ifscCode,
-        amount: invoice.amount,
-        particulars: invoice.particulars,
-        invoiceNo: invoice.invoiceNo,
-        invoiceDate: invoice.invoiceDate,
-        grossAmount: invoice.grossAmount,
-        tds: invoice.tds,
-        otherDeductions: invoice.otherDeductions,
-        netAmount: invoice.netAmount,
-        status: invoice.status || "Pending",
-      }));
+      dataToSubmit.invoices = dataToSubmit.invoices.map((invoice) => {
+        // Create the base invoice object
+        const invoiceData = {
+          refNo: invoice.refNo,
+          recipientName: invoice.recipientName,
+          recipientEmail: invoice.recipientEmail,
+          recipientAddress: invoice.recipientAddress,
+          phone: invoice.phone,
+          accountNumber: invoice.accountNumber,
+          ifscCode: invoice.ifscCode,
+          amount: invoice.amount,
+          particulars: invoice.particulars,
+          invoiceNo: invoice.invoiceNo,
+          invoiceDate: invoice.invoiceDate,
+          grossAmount: invoice.grossAmount,
+          tds: invoice.tds,
+          otherDeductions: invoice.otherDeductions,
+          netAmount: invoice.netAmount,
+          status: invoice.status || "Pending",
+        };
+
+        // Add additionalInvoices if they exist
+        if (
+          invoice.additionalInvoices &&
+          invoice.additionalInvoices.length > 0
+        ) {
+          invoiceData.additionalInvoices = invoice.additionalInvoices.map(
+            (addInv) => ({
+              invoiceNo: addInv.invoiceNo || "",
+              invoiceDate: addInv.invoiceDate || "",
+              particulars: addInv.particulars || "",
+              grossAmount: parseFloat(addInv.grossAmount) || 0,
+              tds: parseFloat(addInv.tds) || 0,
+              otherDeductions: parseFloat(addInv.otherDeductions) || 0,
+              netAmount: parseFloat(addInv.netAmount) || 0,
+            })
+          );
+        } else {
+          invoiceData.additionalInvoices = [];
+        }
+
+        return invoiceData;
+      });
     }
 
     console.log("Submitting data:", dataToSubmit);
@@ -197,6 +234,7 @@ const PaymentForm = ({ incident, onClose }) => {
             otherDeductions: "",
             netAmount: "",
             invoiceDate: "",
+            additionalInvoices: [],
           },
         ],
       })
@@ -206,6 +244,88 @@ const PaymentForm = ({ incident, onClose }) => {
   const removeInvoice = (index) => {
     const updatedInvoices = [...(incidentData.invoices || [])];
     updatedInvoices.splice(index, 1);
+    dispatch(setIncidentData({ invoices: updatedInvoices }));
+  };
+
+  // Function to add additional invoice details to an existing recipient
+  const addAdditionalInvoice = (index) => {
+    const updatedInvoices = [...(incidentData.invoices || [])];
+    const invoice = updatedInvoices[index];
+
+    // Create new additional invoice object with empty fields
+    const newInvoiceDetails = {
+      invoiceNo: "",
+      invoiceDate: "",
+      particulars: "",
+      grossAmount: "",
+      tds: "",
+      otherDeductions: "",
+      netAmount: "",
+    };
+
+    // Ensure additionalInvoices array exists
+    if (!invoice.additionalInvoices) {
+      invoice.additionalInvoices = [];
+    }
+
+    // Add new invoice to additionalInvoices array
+    updatedInvoices[index] = {
+      ...invoice,
+      additionalInvoices: [...invoice.additionalInvoices, newInvoiceDetails],
+    };
+
+    dispatch(setIncidentData({ invoices: updatedInvoices }));
+  };
+
+  // Function to handle changes to additional invoice fields
+  const handleAdditionalInvoiceChange = (
+    invoiceIndex,
+    additionalIndex,
+    field,
+    value
+  ) => {
+    const updatedInvoices = [...(incidentData.invoices || [])];
+    const invoice = updatedInvoices[invoiceIndex];
+    const additionalInvoices = [...(invoice.additionalInvoices || [])];
+    const additionalInvoice = {
+      ...additionalInvoices[additionalIndex],
+      [field]: value,
+    };
+
+    // Calculate netAmount for additional invoice
+    if (["grossAmount", "tds", "otherDeductions"].includes(field)) {
+      const grossAmount = parseFloat(additionalInvoice.grossAmount) || 0;
+      const tds = parseFloat(additionalInvoice.tds) || 0;
+      const otherDeductions =
+        parseFloat(additionalInvoice.otherDeductions) || 0;
+      additionalInvoice.netAmount = (
+        grossAmount -
+        tds -
+        otherDeductions
+      ).toFixed(2);
+    }
+
+    additionalInvoices[additionalIndex] = additionalInvoice;
+    updatedInvoices[invoiceIndex] = {
+      ...invoice,
+      additionalInvoices: additionalInvoices,
+    };
+
+    dispatch(setIncidentData({ invoices: updatedInvoices }));
+  };
+
+  // Function to remove an additional invoice
+  const removeAdditionalInvoice = (invoiceIndex, additionalIndex) => {
+    const updatedInvoices = [...(incidentData.invoices || [])];
+    const invoice = updatedInvoices[invoiceIndex];
+    const additionalInvoices = [...(invoice.additionalInvoices || [])];
+
+    additionalInvoices.splice(additionalIndex, 1);
+    updatedInvoices[invoiceIndex] = {
+      ...invoice,
+      additionalInvoices: additionalInvoices,
+    };
+
     dispatch(setIncidentData({ invoices: updatedInvoices }));
   };
 
@@ -257,7 +377,7 @@ const PaymentForm = ({ incident, onClose }) => {
             <Input
               id="transactionDate"
               type="date"
-              value={incidentData.transactionDate || ""} // FIXED: Don't convert to current date
+              value={incidentData.transactionDate || ""}
               onChange={onInputChange}
               required
             />
@@ -512,12 +632,201 @@ const PaymentForm = ({ incident, onClose }) => {
                   </div>
                 </div>
 
-                <Button
-                  className="mt-4 bg-red-500 hover:bg-red-600 text-white"
-                  onClick={() => removeInvoice(index)}
-                >
-                  Remove Invoice
-                </Button>
+                {/* Additional Invoices Section */}
+                {invoice.additionalInvoices &&
+                  invoice.additionalInvoices.length > 0 && (
+                    <div className="mt-6 border-t pt-4">
+                      <h4 className="font-medium mb-2">Additional Invoices</h4>
+                      {invoice.additionalInvoices.map(
+                        (additionalInvoice, additionalIndex) => (
+                          <div
+                            key={additionalIndex}
+                            className="border p-3 rounded mt-2 bg-gray-50"
+                          >
+                            <div className="flex justify-between items-center mb-2">
+                              <h5 className="font-medium">
+                                Additional Invoice #{additionalIndex + 1}
+                              </h5>
+                              <Button
+                                className="bg-red-500 hover:bg-red-600 text-white text-xs py-1"
+                                onClick={() =>
+                                  removeAdditionalInvoice(
+                                    index,
+                                    additionalIndex
+                                  )
+                                }
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <div>
+                                <Label
+                                  htmlFor={`additionalInvoiceNo_${index}_${additionalIndex}`}
+                                >
+                                  Invoice Number
+                                </Label>
+                                <Input
+                                  id={`additionalInvoiceNo_${index}_${additionalIndex}`}
+                                  type="text"
+                                  value={additionalInvoice.invoiceNo || ""}
+                                  onChange={(e) =>
+                                    handleAdditionalInvoiceChange(
+                                      index,
+                                      additionalIndex,
+                                      "invoiceNo",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Enter Invoice Number"
+                                />
+                              </div>
+                              <div>
+                                <Label
+                                  htmlFor={`additionalInvoiceDate_${index}_${additionalIndex}`}
+                                >
+                                  Invoice Date
+                                </Label>
+                                <Input
+                                  id={`additionalInvoiceDate_${index}_${additionalIndex}`}
+                                  type="date"
+                                  value={additionalInvoice.invoiceDate || ""}
+                                  onChange={(e) =>
+                                    handleAdditionalInvoiceChange(
+                                      index,
+                                      additionalIndex,
+                                      "invoiceDate",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                              </div>
+                              <div>
+                                <Label
+                                  htmlFor={`additionalParticulars_${index}_${additionalIndex}`}
+                                >
+                                  Particulars
+                                </Label>
+                                <Input
+                                  id={`additionalParticulars_${index}_${additionalIndex}`}
+                                  type="text"
+                                  value={additionalInvoice.particulars || ""}
+                                  onChange={(e) =>
+                                    handleAdditionalInvoiceChange(
+                                      index,
+                                      additionalIndex,
+                                      "particulars",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Enter Particulars"
+                                />
+                              </div>
+                              <div>
+                                <Label
+                                  htmlFor={`additionalGrossAmount_${index}_${additionalIndex}`}
+                                >
+                                  Gross Amount
+                                </Label>
+                                <Input
+                                  id={`additionalGrossAmount_${index}_${additionalIndex}`}
+                                  type="number"
+                                  step="0.01"
+                                  value={additionalInvoice.grossAmount || ""}
+                                  onChange={(e) =>
+                                    handleAdditionalInvoiceChange(
+                                      index,
+                                      additionalIndex,
+                                      "grossAmount",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Enter Gross Amount"
+                                />
+                              </div>
+                              <div>
+                                <Label
+                                  htmlFor={`additionalTds_${index}_${additionalIndex}`}
+                                >
+                                  TDS
+                                </Label>
+                                <Input
+                                  id={`additionalTds_${index}_${additionalIndex}`}
+                                  type="number"
+                                  step="0.01"
+                                  value={additionalInvoice.tds || ""}
+                                  onChange={(e) =>
+                                    handleAdditionalInvoiceChange(
+                                      index,
+                                      additionalIndex,
+                                      "tds",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Enter TDS"
+                                />
+                              </div>
+                              <div>
+                                <Label
+                                  htmlFor={`additionalOtherDeductions_${index}_${additionalIndex}`}
+                                >
+                                  Other Deductions
+                                </Label>
+                                <Input
+                                  id={`additionalOtherDeductions_${index}_${additionalIndex}`}
+                                  type="number"
+                                  step="0.01"
+                                  value={
+                                    additionalInvoice.otherDeductions || ""
+                                  }
+                                  onChange={(e) =>
+                                    handleAdditionalInvoiceChange(
+                                      index,
+                                      additionalIndex,
+                                      "otherDeductions",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Enter Other Deductions"
+                                />
+                              </div>
+                              <div>
+                                <Label
+                                  htmlFor={`additionalNetAmount_${index}_${additionalIndex}`}
+                                >
+                                  Net Amount
+                                </Label>
+                                <Input
+                                  id={`additionalNetAmount_${index}_${additionalIndex}`}
+                                  type="number"
+                                  step="0.01"
+                                  value={additionalInvoice.netAmount || ""}
+                                  readOnly
+                                  className="bg-gray-50"
+                                  placeholder="Calculated automatically"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  )}
+
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                    onClick={() => addAdditionalInvoice(index)}
+                  >
+                    Add Invoice for this Recipient
+                  </Button>
+                  <Button
+                    className="bg-red-500 hover:bg-red-600 text-white"
+                    onClick={() => removeInvoice(index)}
+                  >
+                    Remove Recipient
+                  </Button>
+                </div>
               </div>
             ))}
 
@@ -525,7 +834,7 @@ const PaymentForm = ({ incident, onClose }) => {
               className="mt-4 bg-green-500 hover:bg-green-600 text-white"
               onClick={addInvoice}
             >
-              Add Invoice
+              Add New Recipient
             </Button>
           </div>
 

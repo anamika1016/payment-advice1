@@ -237,7 +237,6 @@ export const updateInvoiceStatus = async (req, res) => {
 
           let emailTemplate = await readFile(emailTemplatePath, "utf-8");
           emailTemplate = emailTemplate
-
             .replace(
               "[Recipient's Name]",
               targetInvoice.recipientName || "Customer"
@@ -255,7 +254,8 @@ export const updateInvoiceStatus = async (req, res) => {
             .replace("[Due Date]", targetInvoice.dueDate || "N/A")
             .replace("[Account Number]", targetInvoice.accountNumber || "N/A")
             .replace("[IFSC Code]", targetInvoice.ifscCode || "N/A")
-            .replace("[UTR Number]", targetInvoice.utrNumber || "N/A");
+            .replace("[UTR Number]", paymentInvoice.utrNo || "N/A")
+            .replace("[Company Address]", companyAddressHTML);
 
           const subject = `Invoice #${
             targetInvoice.invoiceNo || ""

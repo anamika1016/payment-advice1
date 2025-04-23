@@ -29,6 +29,18 @@ const InvoiceSchema = new mongoose.Schema({
   otherDeductions: { type: Number },
   netAmount: { type: Number },
   particulars: { type: String, trim: true },
+  // Add this new field for additional invoices
+  additionalInvoices: [
+    {
+      invoiceNo: { type: String, trim: true },
+      invoiceDate: { type: Date },
+      particulars: { type: String, trim: true },
+      grossAmount: { type: Number },
+      tds: { type: Number },
+      otherDeductions: { type: Number },
+      netAmount: { type: Number },
+    },
+  ],
 });
 
 const PaymentInvoiceSchema = new mongoose.Schema({

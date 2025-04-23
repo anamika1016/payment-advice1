@@ -157,13 +157,13 @@ const Payment = () => {
     closeDeleteConfirmation();
   };
 
-  const generateInvoicePdf = (invoice) => {
+  const generateInvoicePdf = (incident) => {
     try {
       if (!invoiceTemplate) {
         throw new Error("Invoice template not loaded");
       }
 
-      console.log("Invoice data to populate:", invoice);
+      console.log("Invoice data to populate:", incident);
 
       let html = invoiceTemplate;
 
@@ -178,8 +178,8 @@ const Payment = () => {
       }
 
       // Use invoice date if present, otherwise use current date
-      const invoiceDate = invoice.invoiceDate
-        ? new Date(invoice.invoiceDate)
+      const invoiceDate = incident.invoiceDate
+        ? new Date(incident.invoiceDate)
             .toLocaleDateString("en-IN", {
               day: "2-digit",
               month: "2-digit",
@@ -194,40 +194,123 @@ const Payment = () => {
             })
             .replace(/\//g, "-");
 
-      const totalGrossAmount = invoice.grossAmount || 0;
-      const totalTds = invoice.tds || 0;
-      const totalOtherDeductions = invoice.otherDeductions || 0;
-      const totalNetAmount = invoice.netAmount || 0;
+      // Calculate total amounts across all invoices
+      let allInvoices = [];
+      const mainInvoice = {
+        invoiceNo: incident.invoiceNo || "-",
+        invoiceDate: invoiceDate,
+        particulars: incident.particulars || "-",
+        grossAmount: incident.grossAmount || 0,
+        tds: incident.tds || 0,
+        otherDeductions: incident.otherDeductions || 0,
+        netAmount: incident.netAmount || 0,
+      };
+      allInvoices.push(mainInvoice);
+
+      // Add additional invoices if they exist
+      if (
+        incident.additionalInvoices &&
+        incident.additionalInvoices.length > 0
+      ) {
+        incident.additionalInvoices.forEach((invoice) => {
+          const additionalInvoiceDate = invoice.invoiceDate
+            ? new Date(invoice.invoiceDate)
+                .toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
+                .replace(/\//g, "-")
+            : "-";
+
+          allInvoices.push({
+            invoiceNo: invoice.invoiceNo || "-",
+            invoiceDate: additionalInvoiceDate,
+            particulars: invoice.particulars || "-",
+            grossAmount: invoice.grossAmount || 0,
+            tds: invoice.tds || 0,
+            otherDeductions: invoice.otherDeductions || 0,
+            netAmount: invoice.netAmount || 0,
+          });
+        });
+      }
+
+      // Calculate grand totals
+      const totalGrossAmount = allInvoices.reduce(
+        (sum, inv) => sum + (inv.grossAmount || 0),
+        0
+      );
+      const totalTds = allInvoices.reduce(
+        (sum, inv) => sum + (inv.tds || 0),
+        0
+      );
+      const totalOtherDeductions = allInvoices.reduce(
+        (sum, inv) => sum + (inv.otherDeductions || 0),
+        0
+      );
+      const totalNetAmount = allInvoices.reduce(
+        (sum, inv) => sum + (inv.netAmount || 0),
+        0
+      );
 
       let updatedHtml = html
         .replace(
           /Invoice No\/Date/g,
-          `Invoice No: ${invoice.invoiceNo || "-"} / Date: ${invoiceDate}`
+          `Invoice No: ${mainInvoice.invoiceNo} / Date: ${invoiceDate}`
         )
         .replace(/<p>Date<\/p>/g, `<p>Date: ${invoiceDate}</p>`)
         .replace(
           /<p>Ref No\.<br><\/p>/g,
-          `<p>Ref No.: ${invoice.refNo || "-"}<br></p>`
+          `<p>Ref No.: ${incident.refNo || "-"}<br></p>`
         )
         .replace(
           /<p>To,<br><\/p>/g,
-          `<p>To,<br>${invoice.recipientName || ""}<br>${
-            invoice.recipientAddress || ""
+          `<p>To,<br>${incident.recipientName || ""}<br>${
+            incident.recipientAddress || ""
           }</p>`
         )
         .replace(/Rs\.\s*-+/g, `Rs. ${totalNetAmount.toFixed(2)}`)
         .replace(
           /Account No\.\s*-+/g,
-          `Account No. ${invoice.accountNumber || "-"}`
+          `Account No. ${incident.accountNumber || "-"}`
         )
-        .replace(/IFSC Code\s*-+/g, `IFSC Code ${invoice.ifscCode || "N/A"}`)
+        .replace(/IFSC Code\s*-+/g, `IFSC Code ${incident.ifscCode || "N/A"}`)
         .replace(
           /UTR No\.\s*-+/g,
-          `UTR No. ${invoice.utrNo ? invoice.utrNo : "N/A"}`
+          `UTR No. ${incident.utrNo ? incident.utrNo : "N/A"}`
         )
         .replace(/dated\s*-+/g, `dated ${invoiceDate}`);
 
       let processedHtml = updatedHtml;
+
+      // Create table rows for each invoice
+      let invoiceRows = allInvoices
+        .map(
+          (invoice) => `
+        <tr>
+          <td style="border: 1px solid black; padding: 8px;">${
+            invoice.particulars
+          }</td>
+          <td style="border: 1px solid black; padding: 8px;">
+            ${invoice.invoiceNo}<br>
+            ${invoice.invoiceDate}
+          </td>
+          <td style="border: 1px solid black; padding: 8px; text-align: right;">₹${invoice.grossAmount.toFixed(
+            2
+          )}</td>
+          <td style="border: 1px solid black; padding: 8px; text-align: right;">₹${invoice.tds.toFixed(
+            2
+          )}</td>
+          <td style="border: 1px solid black; padding: 8px; text-align: right;">₹${invoice.otherDeductions.toFixed(
+            2
+          )}</td>
+          <td style="border: 1px solid black; padding: 8px; text-align: right;">₹${invoice.netAmount.toFixed(
+            2
+          )}</td>
+        </tr>
+      `
+        )
+        .join("");
 
       const tableHtml = `
       <table style="width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid black;">
@@ -242,35 +325,15 @@ const Payment = () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td style="border: 1px solid black; padding: 8px;">${
-              invoice.particulars || invoice.particulars || "-"
-            }</td>
-            <td style="border: 1px solid black; padding: 8px;">
-              ${invoice.invoiceNo || "-"}<br>
-              ${invoiceDate}
-            </td>
-            <td style="border: 1px solid black; padding: 8px; text-align: right;">₹${(
-              totalGrossAmount || 0
-            ).toFixed(2)}</td>
-            <td style="border: 1px solid black; padding: 8px; text-align: right;">₹${(
-              totalTds || 0
-            ).toFixed(2)}</td>
-            <td style="border: 1px solid black; padding: 8px; text-align: right;">₹${(
-              totalOtherDeductions || 0
-            ).toFixed(2)}</td>
-            <td style="border: 1px solid black; padding: 8px; text-align: right;">₹${(
-              totalNetAmount || 0
-            ).toFixed(2)}</td>
-          </tr>
+          ${invoiceRows}
           <tr>
             <td style="border: 1px solid black; padding: 8px; font-weight: bold;" colspan="2">TOTAL</td>
             <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;"></td>
             <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;"></td>
             <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;"></td>
-            <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">₹${(
-              totalNetAmount || 0
-            ).toFixed(2)}</td>
+            <td style="border: 1px solid black; padding: 8px; text-align: right; font-weight: bold;">₹${totalNetAmount.toFixed(
+              2
+            )}</td>
           </tr>
         </tbody>
       </table>
