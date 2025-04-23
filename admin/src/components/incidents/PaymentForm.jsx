@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -20,6 +20,7 @@ import {
 } from "../ui/select";
 import Layout from "@/components/layout/Layout";
 import { useNavigate } from "react-router-dom";
+import axios from "@/api/axios"; // Make sure this is your configured axios instance
 
 const PaymentForm = ({ incident, onClose }) => {
   const dispatch = useDispatch();
@@ -42,7 +43,7 @@ const PaymentForm = ({ incident, onClose }) => {
           bankName: "",
           senderAccountNumber: "",
           amount: null,
-          transactionDate: "", // FIXED: Don't default to current date
+          transactionDate: "",
           invoices: [],
         })
       );
@@ -194,7 +195,7 @@ const PaymentForm = ({ incident, onClose }) => {
             tds: "",
             otherDeductions: "",
             netAmount: "",
-            invoiceDate: "", // FIXED: Don't default to current date
+            invoiceDate: "",
           },
         ],
       })
@@ -248,50 +249,6 @@ const PaymentForm = ({ incident, onClose }) => {
               required
             />
           </div>
-
-          <div>
-            <Label htmlFor="bankName" className="required-input">
-              Bank Name
-            </Label>
-            <Input
-              id="bankName"
-              type="text"
-              value={incidentData.bankName || ""}
-              onChange={onInputChange}
-              placeholder="Enter Bank Name"
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="senderAccountNumber" className="required-input">
-              Account Number
-            </Label>
-            <Input
-              id="senderAccountNumber"
-              type="text"
-              value={incidentData.senderAccountNumber || ""}
-              onChange={onInputChange}
-              placeholder="Enter Account Number"
-              required
-            />
-          </div>
-
-          {/* <div>
-            <Label htmlFor="amount" className="required-input">
-              Total Amount
-            </Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              value={incidentData.amount || ""}
-              onChange={onInputChange}
-              placeholder="Enter Amount"
-              required
-            />
-          </div> */}
-
           <div>
             <Label htmlFor="transactionDate" className="required-input">
               Transaction Date
@@ -459,7 +416,9 @@ const PaymentForm = ({ incident, onClose }) => {
                   </div>
 
                   <div>
-                    <Label htmlFor={`invoiceNo_${index}`}>Invoice Number</Label>
+                    <Label htmlFor={`invoiceNo_${index}`}>
+                      Invoice Number/RFP Number
+                    </Label>
                     <Input
                       id={`invoiceNo_${index}`}
                       type="text"
@@ -471,7 +430,9 @@ const PaymentForm = ({ incident, onClose }) => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor={`invoiceDate_${index}`}>Invoice Date</Label>
+                    <Label htmlFor={`invoiceDate_${index}`}>
+                      Invoice Date/RFP Date{" "}
+                    </Label>
                     <Input
                       id={`invoiceDate_${index}`}
                       type="date"
@@ -521,7 +482,7 @@ const PaymentForm = ({ incident, onClose }) => {
 
                   <div>
                     <Label htmlFor={`otherDeductions_${index}`}>
-                      Other Deductions
+                      Other Deductions/Advance Adjustment
                     </Label>
                     <Input
                       id={`otherDeductions_${index}`}

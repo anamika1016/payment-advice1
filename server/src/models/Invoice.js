@@ -33,8 +33,8 @@ const InvoiceSchema = new mongoose.Schema({
 const PaymentInvoiceSchema = new mongoose.Schema({
   paymentType: { type: String, enum: ["nft", "upi"], required: true },
   utrNo: { type: String, trim: true, required: true },
-  bankName: { type: String, trim: true, required: true },
-  senderAccountNumber: { type: String, trim: true, required: true },
+  bankName: { type: String },
+  senderAccountNumber: { type: String },
   amount: { type: Number },
   transactionDate: { type: Date, required: true },
   invoices: { type: [InvoiceSchema], required: true },
