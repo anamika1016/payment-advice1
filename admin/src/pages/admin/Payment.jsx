@@ -525,7 +525,6 @@ const Payment = () => {
                   <TableHead>Recipient Address</TableHead>
                   <TableHead>Account Number</TableHead>
                   <TableHead>IFSC Code</TableHead>
-                  <TableHead>Amount</TableHead>
                   <TableHead>Invoice No</TableHead>
                   <TableHead>Gross Amount</TableHead>
                   <TableHead>TDS</TableHead>
@@ -546,7 +545,6 @@ const Payment = () => {
                       <TableCell>{invoice.recipientAddress}</TableCell>
                       <TableCell>{invoice.accountNumber}</TableCell>
                       <TableCell>{invoice.ifscCode}</TableCell>
-                      <TableCell>{invoice.amount}</TableCell>
                       <TableCell>{invoice.invoiceNo}</TableCell>
                       <TableCell>{invoice.grossAmount}</TableCell>
                       <TableCell>{invoice.tds}</TableCell>

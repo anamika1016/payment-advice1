@@ -118,14 +118,56 @@ export const getInvoices = async (req, res) => {
 export const editInvoice = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const { invoiceIndex, invoiceData, ...updateData } = req.body;
     const { company } = req.user;
 
-    const updatedInvoice = await PaymentInvoice.findOneAndUpdate(
-      { "invoices._id": id, company },
-      { $set: { "invoices.$": updateData } },
-      { new: true }
-    );
+    let updatedInvoice;
+
+    // Case 1: Update a specific invoice by index in the payment
+    if (invoiceIndex !== undefined && invoiceData) {
+      // First find the payment document
+      const payment = await PaymentInvoice.findById(id);
+
+      if (!payment) {
+        return res
+          .status(404)
+          .send({ success: false, message: "Payment not found" });
+      }
+
+      // Update the specific invoice at the given index
+      if (payment.invoices && payment.invoices[invoiceIndex]) {
+        payment.invoices[invoiceIndex] = {
+          ...payment.invoices[invoiceIndex].toObject(),
+          ...invoiceData,
+        };
+
+        updatedInvoice = await payment.save();
+      } else {
+        return res.status(404).send({
+          success: false,
+          message: "Invoice at specified index not found",
+        });
+      }
+    }
+    // Case 2: Update an invoice by its ID
+    else if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      // If id is a valid MongoDB ObjectID
+      // First check if this is an invoice ID
+      updatedInvoice = await PaymentInvoice.findOneAndUpdate(
+        { "invoices._id": id, company },
+        { $set: { "invoices.$": updateData } },
+        { new: true }
+      );
+
+      // If not found as an invoice ID, try as a payment ID
+      if (!updatedInvoice) {
+        updatedInvoice = await PaymentInvoice.findByIdAndUpdate(
+          id,
+          { $set: updateData },
+          { new: true }
+        );
+      }
+    }
 
     if (!updatedInvoice) {
       return res
@@ -139,6 +181,7 @@ export const editInvoice = async (req, res) => {
       data: updatedInvoice,
     });
   } catch (error) {
+    console.error("Error updating invoice:", error);
     res.status(500).send({
       success: false,
       message: "Failed to update invoice",
@@ -237,6 +280,7 @@ export const updateInvoiceStatus = async (req, res) => {
 
           let emailTemplate = await readFile(emailTemplatePath, "utf-8");
           emailTemplate = emailTemplate
+
             .replace(
               "[Recipient's Name]",
               targetInvoice.recipientName || "Customer"

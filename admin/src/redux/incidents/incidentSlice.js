@@ -40,13 +40,30 @@ export const addIncident = createAsyncThunk(
 
 export const updateIncident = createAsyncThunk(
   "incidents/updateIncident",
-  async ({ id, incidentData }, { rejectWithValue }) => {
+  async (
+    { id, incidentData, invoiceIndex, invoiceData },
+    { rejectWithValue }
+  ) => {
     try {
       const { user } = getUserData();
-      const response = await axios.put(`/invoice/${id}`, {
-        ...incidentData,
-        userId: user.id,
-      });
+      let response;
+
+      // Handle different update scenarios
+      if (invoiceData && invoiceIndex !== undefined) {
+        // Scenario 1: Updating a specific invoice by index
+        response = await axios.put(`/invoice/${id}`, {
+          invoiceIndex,
+          invoiceData,
+          userId: user.id,
+        });
+      } else {
+        // Scenario 2: Updating an entire payment or a specific invoice by ID
+        response = await axios.put(`/invoice/${id}`, {
+          ...incidentData,
+          userId: user.id,
+        });
+      }
+
       if (response.data.success) {
         toast.success(response.data.message);
       }
