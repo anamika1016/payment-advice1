@@ -177,9 +177,9 @@ const Payment = () => {
         html = html.replace(/src=["'].*?papl\.jpg["']/g, `src="${paplImage}"`);
       }
 
-      // Use invoice date if present, otherwise use current date
-      const invoiceDate = incident.invoiceDate
-        ? new Date(incident.invoiceDate)
+      // Format the transaction date
+      const transactionDate = incident.transactionDate
+        ? new Date(incident.transactionDate)
             .toLocaleDateString("en-IN", {
               day: "2-digit",
               month: "2-digit",
@@ -193,6 +193,17 @@ const Payment = () => {
               year: "numeric",
             })
             .replace(/\//g, "-");
+
+      // Format invoice date for invoice-specific fields
+      const invoiceDate = incident.invoiceDate
+        ? new Date(incident.invoiceDate)
+            .toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })
+            .replace(/\//g, "-")
+        : "-";
 
       // Calculate total amounts across all invoices
       let allInvoices = [];
@@ -258,7 +269,7 @@ const Payment = () => {
           /Invoice No\/Date/g,
           `Invoice No: ${mainInvoice.invoiceNo} / Date: ${invoiceDate}`
         )
-        .replace(/<p>Date<\/p>/g, `<p>Date: ${invoiceDate}</p>`)
+        .replace(/<p>Date<\/p>/g, `<p>Date: ${transactionDate}</p>`) // Use transaction date here
         .replace(
           /<p>Ref No\.<br><\/p>/g,
           `<p>Ref No.: ${incident.refNo || "-"}<br></p>`
@@ -279,7 +290,7 @@ const Payment = () => {
           /UTR No\.\s*-+/g,
           `UTR No. ${incident.utrNo ? incident.utrNo : "N/A"}`
         )
-        .replace(/dated\s*-+/g, `dated ${invoiceDate}`);
+        .replace(/dated\s*-+/g, `dated ${transactionDate}`); // Use transaction date here
 
       let processedHtml = updatedHtml;
 

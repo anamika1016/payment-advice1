@@ -38,18 +38,25 @@
             margin-bottom: -28px;
             font-size: 15px
         }
-        .company{
+        .company {
+            position: fixed;         /* Fixes the element to the viewport */
+            bottom: 0;               /* Positions it at the bottom */
+            left: 0;
+            width: 100%;             /* Optional: makes it span full width */
             text-align: center;
-            margin-top: 400px;
-            font-size: 14px;
+            font-size: 13px;
+            padding: 13px;
+            background-color: white; /* Optional: background to see the text clearly */
+            z-index: 1000;           /* Keeps it above other content */
         }
+
         .note {
             font-style: italic;
             margin-top: 10px;
         }
         .logo img {
-            width: 100px;
-            height: 100px;
+            width: 140px;
+            height: 140px;
         }
     </style>
 </head>
@@ -61,13 +68,14 @@
 
     <div class="address-section">
         <div class="company-info">
-            <p>Date</p>
-        </div>
+        <p>Date</p>
+    </div>
         <p>Ref No.<br></p>
         <p>To,<br></p>
 
         <p>Dear Sir/Madam,</p>
     </div>
+
 
     <div class="content">
         <p>We have initiated a credit of Rs. ------------------ to your Account No.------------------ with IFSC Code
@@ -83,28 +91,62 @@
                 <th>Any other<br>deduction</th>
                 <th>Net Amount</th>
             </tr>
-            <tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-            <tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>
             <tr>
-                <th>TOTAL</th><td></td><td></td><td></td><td></td><td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <th>TOTAL</th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
             </tr>
         </table>
     </div>
 
     <div class="footer">
-        <p><b>For Action for Social Advancement (ASA)</b></p>
+        <p><B>For Action for Social Advancement (ASA)</B></p>
     </div>
+    <br>
+    <br>
 
     <div class="note">
-        <p><b>Note:</b> This is a computer generated advice and does not require any signature.</p>
+        <p><B>Note:</B> This is a computer generated advice does not require any signature.</p>
     </div>
 
     <div class="company">
-        <p>Action for Social Advancement (ASA)<br>
-        "The Farmers House", Plan-C, Tulip Greens, Village Mahabadia, Kolar Rd, Bhopal, Madhya Pradesh 462042<br>
-        Phone: 091099 88784</p>
+        <p>Action for Social Advancement (ASA) "The Farmers House", Plan-C, Tulip Greens, <br>
+        <P>Village Mahabadia,Kolar Rd, Bhopal, Madhya Pradesh 462042 Phone: 091099 88784</p>
     </div>
 </body>
 </html>

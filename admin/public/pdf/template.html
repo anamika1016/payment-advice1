@@ -38,24 +38,31 @@
             margin-bottom: -28px;
             font-size: 15px
         }
-        .company{
+        .company {
+            position: fixed;         /* Fixes the element to the viewport */
+            bottom: 0;               /* Positions it at the bottom */
+            left: 0;
+            width: 100%;             /* Optional: makes it span full width */
             text-align: center;
-            margin-top: 400px;
-            font-size: 14px;
+            font-size: 13px;
+            padding: 13px;
+            background-color: white; /* Optional: background to see the text clearly */
+            z-index: 1000;           /* Keeps it above other content */
         }
+
         .note {
             font-style: italic;
             margin-top: 10px;
         }
         .logo img {
-            width: 100px;
-            height: 100px;
+            width: 140px;
+            height: 140px;
         }
     </style>
 </head>
 <body>
     <div class="header">     
-        <img src="/img/papllogo.jpg" alt="Company Logo" width="200" height="70">
+        <img src="/img/logo.jpg" alt="Company Logo" width="200" height="70">
         <h2 style="font-size: 17px;">PAYMENT ADVICE</h2>
     </div>
 
@@ -68,6 +75,7 @@
 
         <p>Dear Sir/Madam,</p>
     </div>
+
 
     <div class="content">
         <p>We have initiated a credit of Rs. ------------------ to your Account No.------------------ with IFSC Code

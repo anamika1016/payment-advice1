@@ -22,7 +22,7 @@ export const sendEmail = async (to, subject, html, pdfBuffer = null) => {
     if (pdfBuffer) {
       mailOptions.attachments = [
         {
-          filename: "invoiceReport.pdf",
+          filename: "Payment_Advice.pdf",
           content: pdfBuffer,
           contentType: "application/pdf",
         },

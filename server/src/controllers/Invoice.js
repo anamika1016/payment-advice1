@@ -279,8 +279,31 @@ export const updateInvoiceStatus = async (req, res) => {
           );
 
           let emailTemplate = await readFile(emailTemplatePath, "utf-8");
-          emailTemplate = emailTemplate
+          // ✅ Set company name and address
+          let companyName = "";
+          let companyAddress = "";
 
+          if (company === "asa") {
+            companyName = "Action for Social Advancement (ASA)";
+            companyAddress = `
+                       "The Farmers House", Plan-C, Tulip Greens, Vill. Mahabadia, Kolar Road, Bhopal-462042, Madhya Pradesh<br>
+                       Mobile No.: 9755295045<br>
+                       Email: asa@asabhopal.org<br>
+                       Website: www.asaindia.org
+                     `;
+          } else if (company === "papl") {
+            companyName = "Ploughman Agro Private Limited";
+            companyAddress = `
+                       GOYAL DUPLEX NO. 04, GULMOHAR COLONY<br>
+                       BEHIND SAVOY COMPLEX, BHOPAL<br>
+                       MADHYA PRADESH 462039<br>
+                       CIN: U01100MP2020PTC051052<br>
+                       EMAIL: ploughmanagro@gmail.com
+                     `;
+          }
+
+          // ✅ Replace placeholders
+          emailTemplate = emailTemplate
             .replace(
               "[Recipient's Name]",
               targetInvoice.recipientName || "Customer"
@@ -299,11 +322,10 @@ export const updateInvoiceStatus = async (req, res) => {
             .replace("[Account Number]", targetInvoice.accountNumber || "N/A")
             .replace("[IFSC Code]", targetInvoice.ifscCode || "N/A")
             .replace("[UTR Number]", paymentInvoice.utrNo || "N/A")
-            .replace("[Company Address]", companyAddressHTML);
+            .replace("[Company Name]", companyName)
+            .replace("[Company Address]", companyAddress);
 
-          const subject = `Invoice #${
-            targetInvoice.invoiceNo || ""
-          } - Payment Approved successfully`;
+          const subject = `Payment Advice Approved successfully`;
           const pdfBuffer = await pdfGenerate(invoiceHtml);
 
           await sendEmail(
@@ -323,15 +345,26 @@ export const updateInvoiceStatus = async (req, res) => {
       // Send SMS if requested and phone number is available
       if (sendSMS && targetInvoice.phone) {
         try {
-          // Log the phone number to verify its format
           console.log("Sending SMS to phone:", targetInvoice.phone);
 
-          const amount = targetInvoice.netAmount || targetInvoice.amount || 0;
+          // Calculate total amount from main invoice and all additional invoices
+          let totalAmount = parseFloat(targetInvoice.netAmount) || 0;
+
+          // Add amounts from additional invoices if they exist
+          if (
+            targetInvoice.additionalInvoices &&
+            targetInvoice.additionalInvoices.length > 0
+          ) {
+            targetInvoice.additionalInvoices.forEach((addInv) => {
+              totalAmount += parseFloat(addInv.netAmount) || 0;
+            });
+          }
+
           const invoiceNo = targetInvoice.invoiceNo || "N/A";
           const recipientName = targetInvoice.recipientName || "Client";
 
           const message = encodeURIComponent(
-            `Dear ${recipientName}, payment of Rs. ${amount.toFixed(
+            `Dear ${recipientName}, payment of Rs. ${totalAmount.toFixed(
               2
             )}/- has been processed to your account against Invoice No: ${invoiceNo}. Kindly check and confirm receipt. Action For Social Advancement Finance Team`
           );

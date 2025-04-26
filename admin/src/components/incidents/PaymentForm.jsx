@@ -815,13 +815,14 @@ const PaymentForm = ({ incident, onClose }) => {
 
                 <div className="flex gap-2 mt-4">
                   <Button
-                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                    className="bg-gray-500 hover:bg-custom-gray text-white"
                     onClick={() => addAdditionalInvoice(index)}
                   >
-                    Add Invoice for this Recipient
+                    Add Invoice
                   </Button>
+
                   <Button
-                    className="bg-red-500 hover:bg-red-600 text-white"
+                    className="bg-red-500 hover:bg-custom-red text-white"
                     onClick={() => removeInvoice(index)}
                   >
                     Remove Recipient
