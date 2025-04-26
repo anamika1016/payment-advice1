@@ -51,6 +51,7 @@ const Payment = () => {
   const [paplImage, setPaplImage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isResending, setIsResending] = useState(false);
+  const [asaImage, setAsaImage] = useState(null);
 
   // Add new state variables for the invoice edit dialog
   const [isInvoiceEditDialogOpen, setIsInvoiceEditDialogOpen] = useState(false);
@@ -69,33 +70,37 @@ const Payment = () => {
   }, [dispatch]);
 
   // New function to load and encode images
+  const convertToBase64 = (blob) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
   const loadImages = async () => {
     try {
       // Load logo image
       const logoResponse = await fetch("/img/papllogo.jpg");
-      if (logoResponse.ok) {
-        const logoBlob = await logoResponse.blob();
-        const logoReader = new FileReader();
-        logoReader.onloadend = () => {
-          setLogoImage(logoReader.result);
-        };
-        logoReader.readAsDataURL(logoBlob);
-      } else {
-        console.error("Failed to load logo.jpg");
-      }
+      if (!logoResponse.ok) throw new Error("Failed to load papllogo.jpg");
+      const logoBlob = await logoResponse.blob();
+      const logoBase64 = await convertToBase64(logoBlob);
+      setLogoImage(logoBase64);
 
-      // Load papl image
+      // Load ASA image
+      const asaResponse = await fetch("/img/asa.png");
+      if (!asaResponse.ok) throw new Error("Failed to load asa.png");
+      const asaBlob = await asaResponse.blob();
+      const asaBase64 = await convertToBase64(asaBlob);
+      setAsaImage(asaBase64); // Make sure you have this state declared
+
+      // Load PAPL image
       const paplResponse = await fetch("/img/papl.png");
-      if (paplResponse.ok) {
-        const paplBlob = await paplResponse.blob();
-        const paplReader = new FileReader();
-        paplReader.onloadend = () => {
-          setPaplImage(paplReader.result);
-        };
-        paplReader.readAsDataURL(paplBlob);
-      } else {
-        console.error("Failed to load papl.png");
-      }
+      if (!paplResponse.ok) throw new Error("Failed to load papl.png");
+      const paplBlob = await paplResponse.blob();
+      const paplBase64 = await convertToBase64(paplBlob);
+      setPaplImage(paplBase64);
     } catch (error) {
       console.error("Error loading images:", error);
       toast.error("Failed to load images for invoice");
@@ -104,10 +109,28 @@ const Payment = () => {
 
   const fetchInvoiceTemplate = async () => {
     try {
-      const response = await fetch("/pdf/template.html");
+      const user = JSON.parse(sessionStorage.getItem("user"));
+      const company = user?.company?.toLowerCase(); // Normalize the name
+
+      let templatePath = "";
+
+      switch (company) {
+        case "papl":
+          templatePath = "/pdf/papltem.html";
+          break;
+        case "asa":
+          templatePath = "/pdf/asatem.html";
+          break;
+        default:
+          throw new Error("Unknown company template");
+      }
+
+      const response = await fetch(templatePath);
+
       if (!response.ok) {
         throw new Error(`Failed to fetch template: ${response.status}`);
       }
+
       const html = await response.text();
       setInvoiceTemplate(html);
     } catch (error) {
@@ -171,7 +194,9 @@ const Payment = () => {
         html = html.replace(/src=["'].*?logo\.jpg["']/g, `src="${logoImage}"`);
         html = html.replace(/src=["'].*?logo\.png["']/g, `src="${logoImage}"`);
       }
-
+      if (asaImage) {
+        html = html.replace(/src=["'].*?asa\.png["']/g, `src="${asaImage}"`);
+      }
       if (paplImage) {
         html = html.replace(/src=["'].*?papl\.png["']/g, `src="${paplImage}"`);
         html = html.replace(/src=["'].*?papl\.jpg["']/g, `src="${paplImage}"`);
