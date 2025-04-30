@@ -672,8 +672,8 @@ const PaymentForm = ({ incident, onClose }) => {
                                 Remove
                               </Button>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              <div>
+                            <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2">
+                              <div className="min-w-36">
                                 <Label
                                   htmlFor={`additionalInvoiceNo_${index}_${additionalIndex}`}
                                 >
@@ -694,7 +694,7 @@ const PaymentForm = ({ incident, onClose }) => {
                                   placeholder="Enter Invoice Number"
                                 />
                               </div>
-                              <div>
+                              <div className="min-w-36">
                                 <Label
                                   htmlFor={`additionalInvoiceDate_${index}_${additionalIndex}`}
                                 >
@@ -714,7 +714,7 @@ const PaymentForm = ({ incident, onClose }) => {
                                   }
                                 />
                               </div>
-                              <div>
+                              <div className="min-w-36">
                                 <Label
                                   htmlFor={`additionalParticulars_${index}_${additionalIndex}`}
                                 >
@@ -735,7 +735,7 @@ const PaymentForm = ({ incident, onClose }) => {
                                   placeholder="Enter Particulars"
                                 />
                               </div>
-                              <div>
+                              <div className="min-w-32">
                                 <Label
                                   htmlFor={`additionalGrossAmount_${index}_${additionalIndex}`}
                                 >
@@ -757,7 +757,7 @@ const PaymentForm = ({ incident, onClose }) => {
                                   placeholder="Enter Gross Amount"
                                 />
                               </div>
-                              <div>
+                              <div className="min-w-24">
                                 <Label
                                   htmlFor={`additionalTds_${index}_${additionalIndex}`}
                                 >
@@ -779,7 +779,7 @@ const PaymentForm = ({ incident, onClose }) => {
                                   placeholder="Enter TDS"
                                 />
                               </div>
-                              <div>
+                              <div className="min-w-32">
                                 <Label
                                   htmlFor={`additionalOtherDeductions_${index}_${additionalIndex}`}
                                 >
@@ -803,7 +803,7 @@ const PaymentForm = ({ incident, onClose }) => {
                                   placeholder="Enter Other Deductions"
                                 />
                               </div>
-                              <div>
+                              <div className="min-w-32">
                                 <Label
                                   htmlFor={`additionalNetAmount_${index}_${additionalIndex}`}
                                 >
@@ -826,16 +826,15 @@ const PaymentForm = ({ incident, onClose }) => {
                     </div>
                   )}
 
-                <div className="flex gap-2 mt-4">
+                <div className="flex justify-start gap-2 mt-4">
                   <Button
-                    className="bg-gray-500 hover:bg-custom-gray text-white"
+                    className="bg-gray-500 hover:bg-gray-600 text-white"
                     onClick={() => addAdditionalInvoice(index)}
                   >
                     Add Invoice
                   </Button>
-
                   <Button
-                    className="bg-red-500 hover:bg-custom-red text-white"
+                    className="bg-red-500 hover:bg-red-600 text-white"
                     onClick={() => removeInvoice(index)}
                   >
                     Remove Recipient
@@ -845,7 +844,7 @@ const PaymentForm = ({ incident, onClose }) => {
             ))}
 
             <Button
-              className="mt-4 bg-green-500 hover:bg-green-600 text-white"
+              className="mt-4 bg-black hover:bg-gray-800 text-white"
               onClick={addInvoice}
             >
               Add New Recipient
