@@ -324,6 +324,16 @@ const InvoiceEditDialog = ({
               required
             />
           </div>
+          <div>
+            <Label htmlFor="date">Date</Label>
+            <Input
+              id="date"
+              type="date"
+              value={invoiceData.date || ""}
+              onChange={(e) => handleInputChange("date", e.target.value)}
+              placeholder="Enter Date"
+            />
+          </div>
 
           <div>
             <Label htmlFor="particulars">Particulars</Label>

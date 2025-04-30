@@ -96,6 +96,7 @@ const PaymentForm = ({ incident, onClose }) => {
           phone: invoice.phone,
           accountNumber: invoice.accountNumber,
           ifscCode: invoice.ifscCode,
+          date: invoice.date,
           amount: invoice.amount,
           particulars: invoice.particulars,
           invoiceNo: invoice.invoiceNo,
@@ -226,7 +227,7 @@ const PaymentForm = ({ incident, onClose }) => {
             phone: "",
             accountNumber: "",
             ifscCode: "",
-            amount: "",
+            date: "",
             particulars: "",
             invoiceNo: "",
             grossAmount: "",
@@ -513,6 +514,18 @@ const PaymentForm = ({ incident, onClose }) => {
                       }
                       placeholder="Enter IFSC Code"
                       required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`date_${index}`}>Date</Label>
+                    <Input
+                      id={`date_${index}`}
+                      type="date"
+                      value={invoice.date || ""}
+                      onChange={(e) =>
+                        handleInvoiceChange(index, "date", e.target.value)
+                      }
+                      placeholder="Enter Date"
                     />
                   </div>
 

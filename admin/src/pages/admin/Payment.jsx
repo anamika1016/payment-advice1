@@ -315,7 +315,7 @@ const Payment = () => {
           /UTR No\.\s*-+/g,
           `UTR No. ${incident.utrNo ? incident.utrNo : "N/A"}`
         )
-        .replace(/dated\s*-+/g, `dated ${transactionDate}`); // Use transaction date here
+        .replace(/dated\s*-+/g, `dated ${formatDate(incident.date || "")}`);
 
       let processedHtml = updatedHtml;
 
@@ -400,6 +400,23 @@ const Payment = () => {
       throw error;
     }
   };
+  function formatDate(dateString) {
+    if (!dateString) return "";
+
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "";
+
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+
+      return `${day}-${month}-${year}`;
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "";
+    }
+  }
 
   const handleShow = (incident) => {
     console.log("incident", incident);
